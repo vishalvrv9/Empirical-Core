@@ -60,8 +60,7 @@ export default class TutorialIndex extends React.Component {
       const url = getParameterByName('url')
       return <button className="text-white bg-quillgreen next-button" onClick={() => window.location = decodeURIComponent(url)}>Next</button>
     } else {
-      // TODO: get link for sample activity
-      return <button className="text-white bg-quillgreen try-button" onClick={() => {}}>Try Sample Activity</button>
+      return <button className="text-white bg-quillgreen try-button" onClick={() => window.location = 'http://connect.quill.org/#/teach/class-lessons/-KsKpXAoaEIY5jvWMIzJ/preview?modal=true'}>Try Sample Activity</button>
     }
   }
 
