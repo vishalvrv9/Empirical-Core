@@ -44,6 +44,8 @@ export default React.createClass({
       return d.classification.id;
     } else if (d.activity && d.activity.classification && d.activity.classification.id) {
       return d.activity.classification.id;
+    } else if (d.activity && d.activity.activity_classification_id) {
+      return d.activity.activity_classification_id;
     }
     return null;
   },

@@ -5,7 +5,7 @@ class Scorebook::Query
   end
 
   def query(current_page=1, classroom_id=nil, unit_id=nil, begin_date=nil, end_date=nil)
-    results = Scorebook::ActivitySessionsQuery.new.query(@teacher, classroom_id) #TODO MAKE THIS WORK!!
+    results = Scorebook::ActivitySessionsQuery.new.query(@teacher, classroom_id) #TODO MAKE THIS WORK BETTER!!
     results = filter_by_unit(results, unit_id)
     results = filter_by_dates(results, begin_date, end_date)
     results = paginate(results, current_page)

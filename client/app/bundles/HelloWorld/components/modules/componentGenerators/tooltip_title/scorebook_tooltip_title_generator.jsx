@@ -21,7 +21,7 @@ export default function (percentageDisplayer) {
     if (data.percentage == null) {
       totalScoreOrNot = null;
       conceptResultsOrLoadingOrNotCompleted = <span>This activity has not been completed.</span>;
-    } else if (data.activity.classification.id === 4 && data.percentage) {
+    } else if (data.activity.activity_classification_id === 4 && data.percentage) {
       totalScoreOrNot = <p style={{ fontSize: '13px', color: '#3b3b3b', }}><strong>100% Complete</strong></p>;
     } else {
       totalScoreOrNot = <p style={{ fontSize: '13px', color: '#3b3b3b', }}><strong>Score:</strong> <span className="percentage">{percentageDisplayer.run(data.percentage)}</span></p>;
