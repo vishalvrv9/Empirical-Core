@@ -8,8 +8,8 @@ module Teacher
   TRIAL_START_DATE = Date.parse('1-9-2015') # September 1st 2015
 
   included do
-    has_many :classrooms_i_teach, foreign_key: 'teacher_id', class_name: "Classroom"
-    has_many :students, through: :classrooms_i_teach, class_name: "User"
+
+    has_many :classrooms_teachers, foreign_key: :user_id
     has_many :admin_accounts_teachers,  foreign_key: 'teacher_id', class_name: "AdminAccountsTeachers"
     has_many :admin_accounts_i_am_part_of, through: :admin_accounts_teachers, class_name: "AdminAccount", source: :admin_account
     has_many :units
@@ -23,6 +23,20 @@ module Teacher
     def scope
       User.where(role: 'teacher')
     end
+  end
+
+  def classrooms_i_teach
+    Classroom.where(id: self.classrooms_teachers.pluck(:classroom_id))
+  end
+
+  def students
+    User.find_by_sql(
+      "SELECT students.* FROM users AS teacher
+      JOIN classrooms_teachers AS ct ON ct.user_id = teacher.id
+      JOIN students_classrooms AS sc ON sc.classroom_id = ct.classroom_id
+      JOIN users AS students ON students.id = sc.student_id
+      WHERE teacher.id = #{self.id}"
+    )
   end
 
   # Occasionally teachers are populated in the view with
