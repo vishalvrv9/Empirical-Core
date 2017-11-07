@@ -28,7 +28,9 @@ class StudentsClassrooms < ActiveRecord::Base
   end
 
   def invalidate_classroom_minis
-    $redis.del("user_id:#{self.classroom.teacher_id}_classroom_minis")
+    self.classroom.teachers.each do |teacher|
+      $redis.del("user_id:#{teacher.id}_classroom_minis")
+    end
   end
 
 end
