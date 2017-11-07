@@ -200,7 +200,7 @@ describe ClassroomActivity, type: :model, redis: :true do
         describe 'when the assigned students contain all the students in the classroom' do
           it "sets the classroom activity to assign_on_join: true" do
             expect(classroom_activity.assign_on_join).not_to eq(true)
-            classroom_activity.update(assigned_student_ids: [student.id])
+            classroom_activity.update(assigned_student_ids: classroom.students.pluck(:id))
             expect(classroom_activity.assign_on_join).to eq(true)
           end
         end
@@ -215,10 +215,9 @@ describe ClassroomActivity, type: :model, redis: :true do
       end
 
       context 'when assign_on_join is true' do
-        let!(:student) { classroom.students.first }
         it "updates the assigned student ids with all students in the classroom" do
             classroom_activity.update(assigned_student_ids: [], assign_on_join: true)
-            expect(classroom_activity.assigned_student_ids).to eq([student.id])
+            expect(classroom_activity.assigned_student_ids).to eq(classroom.students.pluck(:id))
         end
       end
     end
