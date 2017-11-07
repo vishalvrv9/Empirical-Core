@@ -201,16 +201,8 @@ module Teacher
     end
   end
 
-  def part_of_admin_account?
-    admin_accounts_i_am_part_of.any?
-  end
-
   def is_premium?
-    if part_of_admin_account?
-      true
-    else
-      !!(subscription && subscription.expiration >= Date.today)
-    end
+    !!(subscription && subscription.expiration >= Date.today)
   end
 
   def getting_started_info
@@ -257,15 +249,9 @@ module Teacher
     end
   end
 
-  def has_premium?
-
-  end
-
   def premium_state
     # the beta period is obsolete -- but may break things by removing it
-    if part_of_admin_account?
-        'school'
-    elsif subscription
+    if subscription
       if !is_beta_period_over?
         "beta"
       elsif is_premium?
