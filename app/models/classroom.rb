@@ -37,11 +37,12 @@ class Classroom < ActiveRecord::Base
   end
 
   def teacher
-    User.find_by_sql("
-      SELECT * FROM users
+    User.find_by_sql(
+      "SELECT * FROM users
       JOIN classrooms_teachers ON classrooms_teachers.user_id = users.id
-      WHERE classrooms_teachers.role = 'owner' AND classrooms_teachers.classroom_id = #{self.id}
-      ").first
+      WHERE classrooms_teachers.role = 'owner'
+      AND classrooms_teachers.classroom_id = #{self.id}"
+      ).first
   end
 
   def unique_topic_count_array

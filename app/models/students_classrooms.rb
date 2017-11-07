@@ -28,8 +28,8 @@ class StudentsClassrooms < ActiveRecord::Base
   end
 
   def invalidate_classroom_minis
-    self.classroom.teachers.each do |teacher|
-      $redis.del("user_id:#{teacher.id}_classroom_minis")
+    ClassroomsTeacher.where(classroom: self.classroom.id).pluck(:user_id).each do |id|
+      $redis.del("user_id:#{id}_classroom_minis")
     end
   end
 

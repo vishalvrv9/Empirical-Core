@@ -5,16 +5,17 @@ describe ClassroomActivity, type: :model, redis: :true do
     let!(:activity_classification_2) { create(:grammar)}
     let!(:activity_classification_6) { create(:lesson)}
     let!(:activity) { create(:activity) }
-    let!(:teacher) { create(:user, role: 'teacher') }
-    let!(:student) { create(:user, role: 'student', username: 'great', name: 'hi hi', password: 'pwd') }
-    let!(:classroom) { create(:classroom, teacher: teacher, code: 'great', name: 'great', students: [student]) }
-    let!(:classroom_2) { create(:classroom, teacher: teacher, code: 'gredat', name: 'gredat') }
+
+    let!(:classroom) { create(:classroom_with_students_and_activities) }
+    let!(:classroom_2) { create(:classroom_with_activities_and_no_students) }
     let!(:unit) { create(:unit) }
     let(:classroom_activity) { ClassroomActivity.create(activity: activity, classroom: classroom, unit: unit) }
     let(:activity_session) {create(:activity_session, classroom_activity_id: classroom_activity.id)}
     let(:lessons_activity) { create(:activity, activity_classification_id: 6) }
     let(:lessons_classroom_activity) { ClassroomActivity.create(activity: lessons_activity, classroom: classroom, unit: unit) }
     let(:lessons_classroom_activity_2) { ClassroomActivity.create(activity: lessons_activity, classroom: classroom_2, unit: unit) }
+
+
 
     describe '#assigned_students' do
         it 'must be empty if none assigned' do
@@ -75,6 +76,8 @@ describe ClassroomActivity, type: :model, redis: :true do
     end
 
     describe 'gives a checkbox when the teacher' do
+      let!(:teacher) { classroom.teacher }
+      let!(:student) { classroom.students.first }
         before do
             classroom.update(teacher_id: teacher.id)
         end
@@ -122,6 +125,7 @@ describe ClassroomActivity, type: :model, redis: :true do
     end
 
     describe '#validate_assigned_student' do
+      let!(:student) { classroom.students.first }
 
       context 'it must return true when' do
 
@@ -191,6 +195,7 @@ describe ClassroomActivity, type: :model, redis: :true do
     end
 
     describe '#check_for_assign_on_join_and_update_students_array_if_true callback' do
+      let!(:student) { classroom.students.first }
       context 'when assign_on_join is false' do
         describe 'when the assigned students contain all the students in the classroom' do
           it "sets the classroom activity to assign_on_join: true" do
@@ -210,6 +215,7 @@ describe ClassroomActivity, type: :model, redis: :true do
       end
 
       context 'when assign_on_join is true' do
+        let!(:student) { classroom.students.first }
         it "updates the assigned student ids with all students in the classroom" do
             classroom_activity.update(assigned_student_ids: [], assign_on_join: true)
             expect(classroom_activity.assigned_student_ids).to eq([student.id])
