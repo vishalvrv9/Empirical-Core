@@ -2,12 +2,9 @@ require 'rails_helper'
 
 describe User, type: :model do
   describe 'teacher concern' do
-      let!(:teacher) {create(:user, role: 'teacher')}
-      let!(:student) {create(:user, role: 'student')}
-      let!(:classroom) {create(:classroom, teacher: teacher, students: [student])}
-      let!(:teacher1) {create(:user, role: 'teacher')}
-      let!(:student1) {create(:user, role: 'student')}
-      let!(:classroom1) {create(:classroom, teacher: teacher, students: [student1])}
+    let!(:teacher) { create(:teacher, :with_classrooms_students_and_activities) }
+    let!(:classroom) { teacher.classrooms_i_teach.first }
+    let!(:classroom1) { teacher.classrooms_i_teach.second }
 
     it '#classrooms_i_teach_with_students' do
       classroom_hash = classroom.attributes
@@ -42,8 +39,8 @@ describe User, type: :model do
     end
 
     describe '#is_premium?' do
-      let!(:teacher_premium_test) {create(:user, role: 'teacher')}
-      let!(:classroom) {create(:classroom, teacher: teacher)}
+      let!(:teacher_premium_test) {create(:teacher, :with_classrooms_students_and_activities)}
+      let!(:classroom) {teacher_premium_test.classrooms_i_teach.first}
 
       context 'user has no associated subscription' do
         it 'returns false' do

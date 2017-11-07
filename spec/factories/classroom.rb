@@ -1,8 +1,11 @@
 FactoryBot.define do
   factory :classroom do
-    teacher
-    name  { "#{teacher.name}'s Classroom'" }
     grade { [(1..12).to_a, 'University', 'Kindergarten', 'Other'].flatten.sample.to_s }
+    name  { "Classroom: Grade #{grade}" }
+
+    after(:create) do |classroom|
+      create(:classrooms_teacher, classroom_id: classroom.id)
+    end
 
     trait :from_google do
       google_classroom_id { (1..10).map{(1..9).to_a.sample}.join } # mock a google id
