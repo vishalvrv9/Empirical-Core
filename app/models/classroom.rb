@@ -28,15 +28,6 @@ class Classroom < ActiveRecord::Base
 
   after_commit :trigger_analytics_events_for_classroom_creation, on: :create
 
-  def x
-    c = self
-    if teacher.present?
-      "#{c.id},#{c.name},#{c.code},#{c.teacher.name},#{c.teacher.email},#{teacher.ip_address}"
-    else
-      "#{c.id},#{c.name},#{c.code},,,"
-    end
-  end
-
   def unique_topic_count
     if unique_topic_count_array.any?
       val = unique_topic_count_array.first.topic_count
