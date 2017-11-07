@@ -26,7 +26,15 @@ module Teacher
   end
 
   def classrooms_i_teach
-    Classroom.where(id: self.classrooms_teachers.pluck(:classroom_id))
+    Classroom.find_by_sql(base_sql_for_teacher_classrooms)
+  end
+
+  def classrooms_i_own
+    Classroom.find_by_sql("#{base_sql_for_teacher_classrooms} AND ct.role = 'owner'")
+  end
+
+  def classrooms_i_coteach
+    Classroom.find_by_sql("#{base_sql_for_teacher_classrooms} AND ct.role = 'coteacher'")
   end
 
   def students
@@ -304,6 +312,14 @@ module Teacher
 
   def get_data_for_lessons_cache
     self.classroom_activities.select{|ca| ca.activity.activity_classification_id == 6}.map{|ca| ca.lessons_cache_info_formatter}
+  end
+
+  private
+
+  def base_sql_for_teacher_classrooms
+    "SELECT classrooms.* from classrooms_teachers AS ct
+    JOIN classrooms ON ct.classroom_id = classrooms.id
+    WHERE ct.user_id = #{self.id}"
   end
 
 
