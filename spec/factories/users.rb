@@ -31,7 +31,9 @@ FactoryBot.define do
       end
 
       trait :with_classrooms_students_and_activities do
-        classrooms_i_teach { create_pair(:classroom_with_students_and_activities) }
+        after(:create) do |teacher|
+          create_pair(:classrooms_teacher, :classroom_has_students_and_activities, user_id: teacher.id)
+        end
       end
     end
 
