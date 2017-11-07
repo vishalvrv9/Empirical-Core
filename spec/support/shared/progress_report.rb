@@ -1,10 +1,10 @@
 shared_examples_for "Progress Report" do
-  render_views
 
   let(:default_filters) { {} }
 
   def login
-    session[:user_id] = teacher.id
+    binding.pry
+    session[:user_id] = classroom.teacher.id
   end
 
   describe 'GET #index HTML' do

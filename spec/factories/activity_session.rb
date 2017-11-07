@@ -39,5 +39,12 @@ FactoryBot.define do
     factory :lesson_activity_session do
       activity { FactoryBot.create(:lesson_activity) }
     end
+
+    factory :completed_activity_session_with_random_concept_results do
+      finished
+      after(:create) do |activity_session|
+        create_list(:concept_result, 5, :random_correct )
+      end
+    end
   end
 end

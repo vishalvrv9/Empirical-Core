@@ -39,5 +39,17 @@ FactoryBot.define do
       question_type { 'lessons-slide' }
       activity_session { FactoryBot.create(:lesson_activity_session) }
     end
+
+    trait :correct do
+      metadata {{ correct: 1 }}
+    end
+
+    trait :random_correct do
+      metadata {{correct: [1,0].sample}}
+    end
+
+    trait :incorrect do
+      metadata {{ correct: 0 }}
+    end
   end
 end
