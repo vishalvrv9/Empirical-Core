@@ -1,7 +1,7 @@
 class ClassroomsTeacher < ActiveRecord::Base
   include CheckboxCallback
 
-  belongs_to :teacher, foreign_key: 'user_id', class_name: 'User'
+  belongs_to :user
   belongs_to :classroom
 
   after_create :delete_classroom_minis_cache
@@ -14,7 +14,7 @@ class ClassroomsTeacher < ActiveRecord::Base
   end
 
   def trigger_analytics_events_for_classroom_creation
-    find_or_create_checkbox('Create a Classroom', self.teacher)
+    find_or_create_checkbox('Create a Classroom', self.user)
     ClassroomCreationWorker.perform_async(self.classroom_id)
   end
 
