@@ -52,6 +52,12 @@ describe User, type: :model do
       end
     end
 
+    it "#students should return all students associated with a teacher's visible classrooms" do
+      expect(teacher.students).to match_array(classroom.students.to_a + classroom1.students.to_a)
+      classroom.update(visible: false)
+      expect(teacher.students).to match_array(classroom1.students.to_a)
+    end
+
     describe '#archived_classrooms' do
       it "returns an array of teachers archived classes if extant" do
         classroom.update(visible: false)

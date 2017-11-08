@@ -41,6 +41,7 @@ module Teacher
     User.find_by_sql(
       "SELECT students.* FROM users AS teacher
       JOIN classrooms_teachers AS ct ON ct.user_id = teacher.id
+      JOIN classrooms ON classrooms.id = ct.classroom_id AND classrooms.visible = TRUE
       JOIN students_classrooms AS sc ON sc.classroom_id = ct.classroom_id
       JOIN users AS students ON students.id = sc.student_id
       WHERE teacher.id = #{self.id}"
