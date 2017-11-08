@@ -42,10 +42,8 @@ RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest
   # assertions if you prefer.
-
   config.include FactoryBot::Syntax::Methods
   config.include RSpec::RedisHelper, redis: true
-
   # clean the Redis database around each run
   # @see https://www.relishapp.com/rspec/rspec-core/docs/hooks/around-hooks
   config.around( :each, redis: true ) do |example|

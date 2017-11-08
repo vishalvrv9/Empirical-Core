@@ -3,7 +3,6 @@ shared_examples_for "Progress Report" do
   let(:default_filters) { {} }
 
   def login
-    binding.pry
     session[:user_id] = classroom.teacher.id
   end
 
