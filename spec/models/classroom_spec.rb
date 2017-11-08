@@ -7,17 +7,10 @@ describe Classroom, type: :model do
 
   context "when created" do
 
-
     it 'must be valid with valid info' do
     	expect(classroom).to be_valid
     end
 
-    it "deletes the redis classrooms mini cache" do
-      $redis.set("user_id:#{teacher.id}_classroom_minis", 'fake_data')
-      expect($redis.get("user_id:#{teacher.id}_classroom_minis")).to eq('fake_data')
-      classroom = create(:classroom, teacher_id: teacher.id)
-      expect($redis.get("user_id:#{teacher.id}_classroom_minis")).to eq(nil)
-    end
   end
 
   context "when is created" do
@@ -61,6 +54,65 @@ describe Classroom, type: :model do
   	end
 
     it "returns a classroom activity when it's associated" do
+    end
+
+  end
+
+  describe '#classrooms_teachers' do
+    let(:classroom) {create(:classroom)}
+    it "returns the classrooms_teachers associated with the classroom" do
+      expect(classroom.classrooms_teachers).to_not be_empty
+      expect(classroom.classrooms_teachers).to eq(ClassroomsTeacher.where(classroom_id: classroom.id))
+    end
+  end
+
+  describe '#teacher' do
+    let(:classroom) {create(:classroom)}
+    it "returns the classrooms owner" do
+      expect(classroom.teacher).to eq(classroom.classrooms_teachers.first.teacher)
+    end
+  end
+
+  describe '#create_with_join' do
+
+    context 'when passed valid classrooms data' do
+      it "creates a classroom" do
+        old_count = Classroom.all.count
+        Classroom.create_with_join(classroom.attributes, teacher.id)
+        expect(Classroom.all.count).to eq(old_count + 1)
+      end
+
+      it "creates a ClassroomsTeacher" do
+        old_count = ClassroomsTeacher.all.count
+        Classroom.create_with_join(classroom.attributes, teacher.id)
+        expect(ClassroomsTeacher.all.count).to eq(old_count + 1)
+      end
+
+      it "makes the classroom teacher an owner if no third argument is passed" do
+        old_count = ClassroomsTeacher.all.count
+        Classroom.create_with_join(classroom.attributes, teacher.id)
+        expect(ClassroomsTeacher.all.count).to eq(old_count + 1)
+        expect(ClassroomsTeacher.last.role).to eq('owner')
+      end
+    end
+    context 'when passed invalid classrooms data' do
+      def invalid_classroom_attributes
+        attributes = classroom.attributes
+        attributes.delete("name")
+        attributes
+      end
+      it "does not create a classroom" do
+        old_count = Classroom.all.count
+        Classroom.create_with_join(invalid_classroom_attributes, teacher.id)
+        expect(Classroom.all.count).to eq(old_count)
+      end
+
+      it "does not create a ClassroomsTeacher" do
+        old_count = ClassroomsTeacher.all.count
+        Classroom.create_with_join(invalid_classroom_attributes, teacher.id)
+        expect(ClassroomsTeacher.all.count).to eq(old_count)
+      end
+
     end
 
   end

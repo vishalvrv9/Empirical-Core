@@ -59,15 +59,12 @@ class Classroom < ActiveRecord::Base
 
   def self.setup_from_clever(section, teacher)
     c = Classroom.where(clever_id: section.id).includes(:units).first_or_initialize
-
     c.update_attributes(
       name: section.name,
       teacher: teacher,
       grade: section.grade
     )
-
     c.import_students!
-
     c
   end
 
