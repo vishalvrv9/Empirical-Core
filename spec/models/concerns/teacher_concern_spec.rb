@@ -5,6 +5,7 @@ describe User, type: :model do
     let!(:teacher) { create(:teacher, :with_classrooms_students_and_activities) }
     let!(:classroom) { teacher.classrooms_i_teach.first }
     let!(:classroom1) { teacher.classrooms_i_teach.second }
+    let!(:cotaught_classroom) { create(:classrooms_teacher, user_id: teacher.id, role: 'coteacher').classroom }
 
     it '#classrooms_i_teach_with_students' do
       classroom_hash = classroom.attributes
@@ -27,10 +28,28 @@ describe User, type: :model do
       expect(classrooms).to include(classroom1_hash)
     end
 
-    it '#classrooms_i_teach should return all visible classrooms i teach' do
-      expect(teacher.classrooms_i_teach).to eq([classroom, classroom1])
-      classroom.update(visible: false)
-      expect(teacher.classrooms_i_teach).to eq([classroom1])
+    describe '#classrooms_i_teach' do
+      it 'should return all visible classrooms associated with the teacher through classrooms teacher' do
+        expect(teacher.classrooms_i_teach).to match_array([classroom, classroom1, cotaught_classroom])
+        classroom.update(visible: false)
+        expect(teacher.classrooms_i_teach).to match_array([classroom1, cotaught_classroom])
+      end
+    end
+
+    describe '#classrooms_i_own' do
+      it 'should return all visible classrooms associated with the teacher through classrooms teacher and role owner' do
+        expect(teacher.classrooms_i_own).to match_array([classroom, classroom1])
+        classroom.update(visible: false)
+        expect(teacher.classrooms_i_own).to match_array([classroom1])
+      end
+    end
+
+    describe '#classrooms_i_coteach' do
+      it 'should return all visible classrooms associated with the teacher through classrooms teacher and role coteacher' do
+        expect(teacher.classrooms_i_coteach).to match_array([cotaught_classroom])
+        cotaught_classroom.update(visible: false)
+        expect(teacher.classrooms_i_coteach).to match_array([])
+      end
     end
 
     describe '#archived_classrooms' do
