@@ -97,7 +97,7 @@ module Teacher
   end
 
   def archived_classrooms
-    Classroom.unscoped.where(teacher_id: self.id, visible: false)
+    Classroom.find_by_sql("#{base_sql_for_teacher_classrooms} AND ct.role = 'owner' AND classrooms.visible = false")
   end
 
   def google_classrooms
