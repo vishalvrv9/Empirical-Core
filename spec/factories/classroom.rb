@@ -38,5 +38,9 @@ FactoryBot.define do
         create_list(:classroom_activity_with_activity_sessions, 5, classroom: classroom)
       end
     end
+
+    trait :with_no_teacher do
+      ClassroomsTeacher.where(classroom_id: self.id).delete_all
+    end
   end
 end
