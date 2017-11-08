@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :classrooms_teacher do
-    role 'owner'
     user_id {create(:teacher).id}
+    role 'owner'
     classroom_id {create(:classroom).id}
 
     factory :classroom_has_students_and_activities do

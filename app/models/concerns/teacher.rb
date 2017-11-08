@@ -101,7 +101,7 @@ module Teacher
   end
 
   def google_classrooms
-    Classroom.where(teacher_id: self.id).where.not(google_classroom_id: nil)
+    Classroom.find_by_sql("#{base_sql_for_teacher_classrooms} AND ct.role = 'owner' AND classrooms.google_classroom_id IS NOT null")
   end
 
   def transfer_account
