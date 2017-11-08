@@ -27,6 +27,12 @@ describe User, type: :model do
       expect(classrooms).to include(classroom1_hash)
     end
 
+    it '#classrooms_i_teach should return all visible classrooms i teach' do
+      expect(teacher.classrooms_i_teach).to eq([classroom, classroom1])
+      classroom.update(visible: false)
+      expect(teacher.classrooms_i_teach).to eq([classroom1])
+    end
+
     describe '#archived_classrooms' do
       it "returns an array of teachers archived classes if extant" do
         classroom.update(visible: false)

@@ -97,7 +97,7 @@ module Teacher
   end
 
   def archived_classrooms
-    Classroom.find_by_sql("#{base_sql_for_teacher_classrooms} AND ct.role = 'owner' AND classrooms.visible = false")
+    Classroom.find_by_sql("#{base_sql_for_teacher_classrooms(false)} AND ct.role = 'owner' AND classrooms.visible = false")
   end
 
   def google_classrooms
@@ -302,9 +302,9 @@ module Teacher
 
   private
 
-  def base_sql_for_teacher_classrooms
+  def base_sql_for_teacher_classrooms(only_visible_classrooms=true)
     "SELECT classrooms.* from classrooms_teachers AS ct
-    JOIN classrooms ON ct.classroom_id = classrooms.id
+    JOIN classrooms ON ct.classroom_id = classrooms.id #{only_visible_classrooms ? ' AND classrooms.visible = TRUE' : nil}
     WHERE ct.user_id = #{self.id}"
   end
 
