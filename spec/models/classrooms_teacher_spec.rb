@@ -2,19 +2,20 @@ require 'rails_helper'
 
 RSpec.describe ClassroomsTeacher, type: :model do
   describe 'validations' do
+    let(:classrooms_teacher_with_arbitrary_role) { build(:classrooms_teacher, role: 'hippopotamus') }
+    let(:classrooms_teacher_with_null_user_id) { build(:classrooms_teacher, user_id: nil) }
+    let(:classrooms_teacher_with_null_classroom_id) { build(:classrooms_teacher, classroom_id: nil) }
+
     it 'should prevent saving arbitrary role' do
-      let(:classrooms_teacher) { create(:classrooms_teacher, role: 'hippopotamus') }
-      expect(classrooms_teacher).to_not be_valid
+      expect{classrooms_teacher_with_arbitrary_role.save}.to raise_error ActiveRecord::StatementInvalid
     end
 
     it 'should require a user_id that is not null' do
-      let(:classrooms_teacher) { create(:classrooms_teacher, user_id: nil) }
-      expect(classrooms_teacher).to_not be_valid
+      expect{classrooms_teacher_with_null_user_id.save}.to raise_error ActiveRecord::StatementInvalid
     end
 
     it 'should require a classroom_id that is not null' do
-      let(:classrooms_teacher) { create(:classrooms_teacher, classroom_id: nil) }
-      expect(classrooms_teacher).to_not be_valid
+      expect{classrooms_teacher_with_null_classroom_id.save}.to raise_error ActiveRecord::StatementInvalid
     end
   end
 
@@ -33,15 +34,15 @@ RSpec.describe ClassroomsTeacher, type: :model do
     let(:teacher) { create(:teacher) }
     let(:classrooms_teacher) { create(:classrooms_teacher,
       classroom_id: classroom.id,
-      teacher_id: teacher.id
+      user_id: teacher.id
     )}
 
     it 'should get the right teacher' do
-      expect(classrooms_teacher.teacher).to be(teacher)
+      expect(classrooms_teacher.teacher).to eq(teacher)
     end
 
     it 'should get the right classroom' do
-      expect(classrooms_teacher.classroom).to be(classroom)
+      expect(classrooms_teacher.classroom).to eq(classroom)
     end
   end
 end

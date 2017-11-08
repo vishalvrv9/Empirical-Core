@@ -1,7 +1,7 @@
 class ClassroomsTeacher < ActiveRecord::Base
   include CheckboxCallback
 
-  belongs_to :teacher
+  belongs_to :teacher, foreign_key: 'user_id', class_name: 'User'
   belongs_to :classroom
 
   after_create :delete_classroom_minis_cache

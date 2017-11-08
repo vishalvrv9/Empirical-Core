@@ -40,7 +40,9 @@ FactoryBot.define do
     end
 
     trait :with_no_teacher do
-      ClassroomsTeacher.where(classroom_id: self.id).delete_all
+      after(:commit) do |classroom|
+        ClassroomsTeacher.where(classroom_id: classroom.id).delete_all
+      end
     end
   end
 end
