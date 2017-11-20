@@ -32,7 +32,7 @@ class Teachers::ClassroomsController < ApplicationController
   def create
     @classroom = Classroom.create_with_join(classroom_params, current_user.id)
     if @classroom.valid?
-      render json: {classroom: @classroom, toInviteStudents: current_user.students.empty?}
+      render json: {classroom: @classroom, toInviteStudents: @classroom.students.empty?}
     else
        render json: {errors: @classroom.errors.full_messages }, status: 422
     end
