@@ -75,9 +75,16 @@ describe('ArchivedClassroomsManager container', () => {
         } else {
           expect(wrapper.find('#active-classes tbody tr').at(i).find('td').at(0).text()).toBe(classrooms[i].className);
           expect(wrapper.find('#active-classes tbody tr').at(i).find('td').at(1).text()).toBe(classrooms[i].ownerName);
-          for(let coteacherName in classrooms[i].coteacherNames) {
-            expect(wrapper.find('#active-classes tbody tr').at(i).find('td').at(2).text()).toMatch(coteacherName);
-          }
+          classrooms[i].coteacherNames.forEach((name)=>{
+            expect(wrapper.find('#active-classes tbody tr').at(i).find('td').at(2).text()).toMatch(name);
+          })
+          // for(let coteacherName in classrooms[i].coteacherNames) {
+          //   console.log('here is classrooms[i]');
+          //   console.log(classrooms[i]);
+          //   console.log('here is the coteacher name');
+          //   console.log(classrooms[i].coteacherName);
+          //
+          // }
           let classcodeString;
           if(classrooms[i].from_google) {
             classcodeString = 'Synced from Google Classroom';
@@ -127,7 +134,7 @@ describe('ArchivedClassroomsManager container', () => {
   //   });
   // });
 
-  describe.skip('coteachers section', () => {
+  describe('coteachers section', () => {
     // TODO: make the response have coteachers and/or pending coteachers
 
     it('should render header', () => {
@@ -137,7 +144,7 @@ describe('ArchivedClassroomsManager container', () => {
     it('should render table headers', () => {
       const headers = ['Co-Teacher Name', 'Email Address', 'Status', 'Classes'];
       for(let i = 0; i < headers.length; i++) {
-        expect(wrapper.find('#my-coteachers table').first('tr').find('td').at(i).text()).toBe(headers[i]);
+        expect(wrapper.find('#my-coteachers table').first('tr').find('th').at(i).text()).toBe(headers[i]);
       }
     });
 

@@ -6,6 +6,7 @@ describe Teachers::ClassroomManagerController, type: :controller do
     it 'returns all invited, archived, and nonarchived classrooms' do
       teacher = create(:teacher_with_a_couple_active_and_archived_classrooms)
       invitation = create(:pending_coteacher_invitation, invitee_email: teacher.email)
+      classrooms_teacher = create(:classrooms_teacher, classroom: teacher.classrooms_i_own.first, role: 'coteacher')
       classroom_invitations = create_pair(:coteacher_classroom_invitation, invitation_id: invitation.id)
       all_classrooms = ClassroomsTeacher.where(user_id: teacher.id).map { |ct| Classroom.unscoped.find ct.classroom_id }
       visible_classrooms = all_classrooms.select(&:visible)
