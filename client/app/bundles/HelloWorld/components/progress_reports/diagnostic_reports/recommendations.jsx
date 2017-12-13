@@ -104,7 +104,7 @@ export default React.createClass({
   assignSelectedPacks() {
     this.setState({ assigning: true, }, () => {
       const classroomId = this.props.params.classroomId;
-      let selections = this.state.selections.map(activityPack => ({
+      const selectionsArray = this.state.selections.map(activityPack => ({
         id: activityPack.activity_pack_id,
         classrooms: [
           {
@@ -113,6 +113,7 @@ export default React.createClass({
           }
         ],
       }));
+      const selections = {selections: selectionsArray}
       $.ajax({
 		  	type: 'POST',
 		  	url: '/teachers/progress_reports/assign_selected_packs/',
