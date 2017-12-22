@@ -252,6 +252,7 @@ EmpiricalGrammar::Application.routes.draw do
   end
 
   namespace :self_study do
+    resources :scores,     only: :index
     resources :activities, only: :index
   end
 
