@@ -251,6 +251,10 @@ EmpiricalGrammar::Application.routes.draw do
     end
   end
 
+  namespace :self_study do
+    resources :activities, only: :index
+  end
+
   # API routes
   namespace :api do
     namespace :v1 do
