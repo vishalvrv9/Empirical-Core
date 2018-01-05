@@ -223,11 +223,19 @@ $tool-grey: #f8f9f9;
     }
 
     .boy-playing-quill {
-      background-color: gray;
-      margin: 60px auto 2px;
-      width: 819px;
-      height: 431px;
+      margin: 60px auto 0px;
+      
+      @media only screen and (max-width : 819px) {
+        margin: 0px auto;
+      }
+
+      img {
+        width: 819px;
+        max-width: 100%;
+        height: auto;
+      }
     }
+
     #testimonial {
       .author {
         color: #606060;
