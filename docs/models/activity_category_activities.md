@@ -5,7 +5,7 @@
 #### id
 Description Goes Here
 
-Type: Fixnum
+Type: Integer
 
 Example: 1
 
@@ -16,7 +16,7 @@ Allowed Values:
 #### activity_category_id
 Description Goes Here
 
-Type: Fixnum
+Type: Integer
 
 Example: 1
 
@@ -27,7 +27,7 @@ Allowed Values:
 #### activity_id
 Description Goes Here
 
-Type: Fixnum
+Type: Integer
 
 Example: 138
 
@@ -38,7 +38,7 @@ Allowed Values:
 #### order_number
 Description Goes Here
 
-Type: Fixnum
+Type: Integer
 
 Example: 0
 

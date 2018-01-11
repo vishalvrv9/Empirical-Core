@@ -5,7 +5,7 @@
 #### id
 Description Goes Here
 
-Type: Fixnum
+Type: Integer
 
 Example: 1
 
@@ -16,7 +16,7 @@ Allowed Values:
 #### classroom_activity_id
 Description Goes Here
 
-Type: Fixnum
+Type: Integer
 
 Example: 1
 
@@ -27,7 +27,7 @@ Allowed Values:
 #### activity_id
 Description Goes Here
 
-Type: Fixnum
+Type: Integer
 
 Example: 1
 
@@ -38,7 +38,7 @@ Allowed Values:
 #### user_id
 Description Goes Here
 
-Type: Fixnum
+Type: Integer
 
 Example: 165
 

@@ -5,7 +5,7 @@
 #### id
 Description Goes Here
 
-Type: Fixnum
+Type: Integer
 
 Example: 1
 
@@ -27,7 +27,7 @@ Allowed Values:
 #### order_number
 Description Goes Here
 
-Type: Fixnum
+Type: Integer
 
 Example: 1
 
