@@ -63,9 +63,9 @@ export default React.createClass({
 		if(this.state.selectedClassroomId) {
 			const selectedClassroom = this.state.classrooms.find(c => c.id === Number(this.state.selectedClassroomId));
 			const unitsInCurrentClassroom = this.state.allUnits.filter(unit=>unit.classrooms.find(classroom=>selectedClassroom.name === classroom.name))
-			this.setState({ units: unitsInCurrentClassroom, loaded: true, });
+			this.setState({ units: unitsInCurrentClassroom}, () => this.setState({loaded: true}));
 		} else {
-			this.setState({ units: this.state.allUnits, loaded: true })
+			this.setState({ units: this.state.allUnits}, () => this.setState({loaded: true}))
 		}
 	},
 
@@ -167,46 +167,46 @@ export default React.createClass({
 	stateBasedComponent: function() {
 		if(!this.state.loaded) {
 			return <LoadingSpinner />;
-		}
-
-		let content;
-
-		const allClassroomsClassroom = { name: 'All Classrooms' }
-		const classrooms = [allClassroomsClassroom].concat(this.state.classrooms);
-		const classroomWithSelectedId = classrooms.find(classroom => classroom.id === Number(this.state.selectedClassroomId));
-		const selectedClassroom = classroomWithSelectedId ? classroomWithSelectedId : allClassroomsClassroom;
-
-		if(this.state.units.length === 0 && this.state.selectedClassroomId) {
-			content = (
-				<EmptyProgressReport
-					missing='activitiesForSelectedClassroom'
-					onButtonClick={() => {
-						this.setState({ selectedClassroomId: null, loaded: false });
-						this.getUnitsForCurrentClass();
-					}}
-				/>
-			);
-		} else if(this.state.units.length === 0) {
-			content = <EmptyProgressReport missing='activities' />
 		} else {
-			content = <Units report={Boolean(true)} activityReport={Boolean(true)} data={this.state.units}/>
-		}
+			let content;
 
-		return (
-			<div className='activity-analysis'>
-				<h1>Activity Analysis</h1>
-				<p>Open an activity analysis to view students' responses, the overall results on each question, and the concepts students need to practice.</p>
-				<div className="classroom-selector">
-					<p>Select a classroom:</p>
-					<ItemDropdown
-						items={classrooms}
-						callback={this.switchClassrooms}
-						selectedItem={selectedClassroom}
+			const allClassroomsClassroom = { name: 'All Classrooms' }
+			const classrooms = [allClassroomsClassroom].concat(this.state.classrooms);
+			const classroomWithSelectedId = classrooms.find(classroom => classroom.id === Number(this.state.selectedClassroomId));
+			const selectedClassroom = classroomWithSelectedId ? classroomWithSelectedId : allClassroomsClassroom;
+
+			if(this.state.units.length === 0 && this.state.selectedClassroomId && this.state.loaded) {
+				content = (
+					<EmptyProgressReport
+						missing='activitiesForSelectedClassroom'
+						onButtonClick={() => {
+							this.setState({ selectedClassroomId: null, loaded: false });
+							this.getUnitsForCurrentClass();
+						}}
 					/>
+				);
+			} else if(this.state.units.length === 0 && this.state.loaded) {
+				content = <EmptyProgressReport missing='activities' />
+			} else {
+				content = <Units report={Boolean(true)} activityReport={Boolean(true)} data={this.state.units}/>
+			}
+
+			return (
+				<div className='activity-analysis'>
+					<h1>Activity Analysis</h1>
+					<p>Open an activity analysis to view students' responses, the overall results on each question, and the concepts students need to practice.</p>
+					<div className="classroom-selector">
+						<p>Select a classroom:</p>
+						<ItemDropdown
+							items={classrooms}
+							callback={this.switchClassrooms}
+							selectedItem={selectedClassroom}
+						/>
+					</div>
+					{content}
 				</div>
-				{content}
-			</div>
-		)
+			)
+		}
 	},
 
 	render: function() {
