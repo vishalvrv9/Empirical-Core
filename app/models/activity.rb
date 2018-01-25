@@ -1,6 +1,21 @@
+require 'elasticsearch/model'
+
 class Activity < ActiveRecord::Base
   include Flags
   include Uid
+  include Elasticsearch::Model
+  include Elasticsearch::Model::Callbacks
+  after_commit on: [:create] do
+    index_document
+  end
+
+  after_commit on: [:update] do
+    update_document
+  end
+
+  after_commit on: [:destroy] do
+    delete_document
+  end
 
   has_and_belongs_to_many :unit_templates
   belongs_to :classification, class_name: 'ActivityClassification', foreign_key: 'activity_classification_id'
@@ -8,7 +23,7 @@ class Activity < ActiveRecord::Base
 
   has_one :section, through: :topic
 
-  belongs_to :follow_up_activity, class_name: "Activity", foreign_key: "follow_up_activity_id"
+  belongs_to :follow_up_activity, class_name: 'Activity', foreign_key: 'follow_up_activity_id'
 
   has_many :classroom_activities, dependent: :destroy
   has_many :classrooms, through: :classroom_activities
@@ -24,18 +39,31 @@ class Activity < ActiveRecord::Base
     SQL
   }
 
-  scope :beta_user, -> { where("'beta' = ANY(activities.flags) OR 'production' = ANY(activities.flags)")}
-  scope :alpha_user, -> { where("'alpha' = ANY(activities.flags) OR 'beta' = ANY(activities.flags) OR 'production' = ANY(activities.flags)")}
+  scope :beta_user, -> { where("'beta' = ANY(activities.flags) OR 'production' = ANY(activities.flags)") }
+  scope :alpha_user, -> { where("'alpha' = ANY(activities.flags) OR 'beta' = ANY(activities.flags) OR 'production' = ANY(activities.flags)") }
 
   scope :with_classification, -> { includes(:classification).joins(:classification) }
 
-  DIAGNOSTIC_ACTIVITY_IDS = [413, 447, 602]
+  DIAGNOSTIC_ACTIVITY_IDS = [413, 447, 602].freeze
 
-  def topic_uid= uid
+  def index_document
+    __elasticsearch__.index_document
+  end
+
+  def update_document
+    __elasticsearch__.update_document
+  end
+
+  def update_document
+    __elasticsearch__.update_document
+  end
+
+
+  def topic_uid=(uid)
     self.topic_id = Topic.find_by_uid(uid).id
   end
 
-  def activity_classification_uid= uid
+  def activity_classification_uid=(uid)
     self.activity_classification_id = ActivityClassification.find_by(uid: uid).id
   end
 
@@ -49,7 +77,7 @@ class Activity < ActiveRecord::Base
     end
   end
 
-  def classification_key= key
+  def classification_key=(key)
     self.classification = ActivityClassification.find_by_key(key)
   end
 
@@ -71,22 +99,22 @@ class Activity < ActiveRecord::Base
 
   def module_url(activity_session)
     @activity_session = activity_session
-    initial_params = {student: activity_session.uid}
+    initial_params = { student: activity_session.uid }
     module_url_helper(initial_params)
   end
 
   def anonymous_module_url
-    initial_params = {anonymous: true}
+    initial_params = { anonymous: true }
     module_url_helper(initial_params)
   end
 
-  # TODO cleanup
-  def flag flag = nil
+  # TODO: cleanup
+  def flag(flag = nil)
     return super(flag) unless flag.nil?
     flags.first
   end
 
-  def flag= flag
+  def flag=(flag)
     flag = :archived if flag.to_sym == :archive
     self.flags = [flag]
   end
@@ -134,7 +162,7 @@ class Activity < ActiveRecord::Base
     end
   end
 
-  def homepage_path(path, classification)
+  def homepage_path(_path, classification)
     case classification.app_name.to_sym
     when :grammar
       '/stories/homepage'
@@ -149,9 +177,6 @@ class Activity < ActiveRecord::Base
       @url.fragment = nil
     end
 
-    return @url
+    @url
   end
-
-
-
 end

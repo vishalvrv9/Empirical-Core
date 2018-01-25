@@ -68,6 +68,10 @@ gem 'httparty'
 # WEBSOCKETS
 gem 'pusher'
 
+# ELASTICSEARCH
+gem 'elasticsearch-model'
+gem 'elasticsearch-rails'
+
 # PARSING
 gem 'parslet'
 gem 'redcarpet'
