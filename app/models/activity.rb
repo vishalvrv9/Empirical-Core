@@ -5,6 +5,7 @@ class Activity < ActiveRecord::Base
   include Uid
   include Elasticsearch::Model
   include Elasticsearch::Model::Callbacks
+
   after_commit on: [:create] do
     index_document
   end
@@ -58,6 +59,13 @@ class Activity < ActiveRecord::Base
     __elasticsearch__.update_document
   end
 
+  def as_indexed_json(_options = {})
+    as_json(
+      include: { categories: { only: :title },
+                 authors:    { methods: [:full_name], only: [:full_name] },
+                 comments:   { only: :text } }
+    )
+end
 
   def topic_uid=(uid)
     self.topic_id = Topic.find_by_uid(uid).id
