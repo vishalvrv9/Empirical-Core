@@ -1,16 +1,15 @@
 require 'rails_helper'
 
 describe ProgressReports::Standards::Unit do
-  let!(:classroom) {FactoryGirl.create(:classroom)}
-  let!(:student) {FactoryGirl.create(:student, classrooms: [classroom])}
-  let!(:classroom_activity) {FactoryGirl.create(:classroom_activity_with_activity, classroom: classroom)}
-  let!(:unit) {FactoryGirl.create :unit, classroom_activities: [classroom_activity]}
 
   describe "getting units for the progress report" do
-    let!(:teacher) { FactoryGirl.create(:teacher) }
+    include_context 'Section Progress Report'
     let(:section_ids) { [sections[0].id, sections[1].id] }
     let(:filters) { {} }
-    include_context 'Section Progress Report'
+    let(:teacher) {classrooms.first.owner}
+    before do
+      ClassroomsTeacher.all.each{|ct| ct.update(user: teacher)}
+    end
 
     subject { ProgressReports::Standards::Unit.new(teacher).results(filters).to_a }
 

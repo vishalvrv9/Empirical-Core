@@ -29,29 +29,14 @@ class Activity < ActiveRecord::Base
 
   scope :with_classification, -> { includes(:classification).joins(:classification) }
 
+  DIAGNOSTIC_ACTIVITY_IDS = [413, 447, 602]
+
   def topic_uid= uid
     self.topic_id = Topic.find_by_uid(uid).id
   end
 
   def activity_classification_uid= uid
     self.activity_classification_id = ActivityClassification.find_by(uid: uid).id
-  end
-
-  # filters = hash of model_name/model_id pairs
-  # sort = hash with 'field' and 'asc_or_desc' (?) as keys
-  def self.search(search_text, filters, sort)
-    query = includes(:classification, topic: [:section, :topic_category])
-      .where("'production' = ANY(activities.flags)")
-      .where("(activities.name ILIKE ?) OR (topic_categories.name ILIKE ?)", "%#{search_text}%", "%#{search_text}%")
-      .where("topic_categories.id IS NOT NULL AND sections.id IS NOT NULL")
-      .order(search_sort_sql(sort)).references(:topic)
-
-    # Sorry for the meta-programming.
-    filters.each do |model_name, model_id| # :activity_classifications, 123
-      query = query.where("#{model_name}.id = ?", model_id)
-    end
-
-    query
   end
 
   def self.user_scope(user_flag)
@@ -62,29 +47,6 @@ class Activity < ActiveRecord::Base
     else
       Activity.production
     end
-  end
-
-  def self.search_sort_sql(sort)
-    return 'sections.name asc' if sort.blank?
-
-    if sort['asc_or_desc'] == 'desc'
-      order = 'desc'
-    else
-      order = 'asc'
-    end
-
-    case sort['field']
-    when 'activity'
-      field = 'activities.name'
-    when 'activity_classification'
-      field = 'activity_classifications.name'
-    when 'section'
-      field = 'sections.name'
-    when 'topic_category'
-      field = 'topic_categories.name'
-    end
-
-    field + ' ' + order
   end
 
   def classification_key= key
@@ -135,7 +97,9 @@ class Activity < ActiveRecord::Base
   end
 
   def self.clear_activity_search_cache
-    $redis.del('default_activity_search')
+    %w(production_ beta_ alpha_).push('').each do |flag|
+      $redis.del("default_#{flag}activity_search")
+    end
   end
 
   def self.set_activity_search_cache

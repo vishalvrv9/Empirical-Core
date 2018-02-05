@@ -18,14 +18,14 @@
 
 .drop-down-filters-and-search {
   margin-left: 15px;
-  margin-bottom: 10px;
-
+  font-size: 14px;
   #search_activities_input {
-    margin-top: 0px;
-    margin-bottom: 20px;
-    width: 280px;
-    border-top-right-radius: 0;
     border-bottom-right-radius: 0;
+    border-right-width: 0;
+    border-top-right-radius: 0;
+    margin-bottom: 20px;
+    margin-top: 0px;
+    width: 280px;
   }
   #search_activities_button {
     margin-right: 15px;
@@ -36,7 +36,7 @@
     padding: 0;
     background-color: #00c2a2;
     .fa-search {
-      font-size: 18spx;
+      font-size: 18px;
     }
   }
 }
@@ -44,13 +44,20 @@
 .activity-filter-drop-downs {
   button {
     overflow: hidden;
+    background: white;
+    &.select-mixin {
+      &:active, &:focus {
+        border-color: #00c2a2;
+      }
+      outline: none;
+    }
+
   }
   .button-select {
     height: 40px;
-    width: 220px;
     margin-right: 15px;
-    white-space: nowrap;
     text-overflow: ellipsis;
+    width: 220px;
     &:focus {
       outline: none;
     }
@@ -75,8 +82,10 @@
     }
   }
   .act-search-filter-fav {
+    left: 100%;
+    margin-left: -22px;
     position: relative;
-    right: 36px;
+    top: -26px;
   }
   img {
     padding-left: 8px;

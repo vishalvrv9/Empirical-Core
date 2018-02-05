@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.4
--- Dumped by pg_dump version 9.6.4
+-- Dumped from database version 10.1
+-- Dumped by pg_dump version 10.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -207,7 +207,8 @@ CREATE TABLE activity_classifications (
     app_name character varying(255),
     order_number integer DEFAULT 999999999,
     instructor_mode boolean DEFAULT false,
-    locked_by_default boolean DEFAULT false
+    locked_by_default boolean DEFAULT false,
+    scored boolean DEFAULT true
 );
 
 
@@ -376,11 +377,7 @@ ALTER SEQUENCE admin_accounts_teachers_id_seq OWNED BY admin_accounts_teachers.i
 CREATE TABLE authors (
     id integer NOT NULL,
     name character varying(255),
-    avatar_file_name character varying(255),
-    avatar_content_type character varying(255),
-    avatar_file_size integer,
-    avatar_updated_at timestamp without time zone,
-    description text
+    avatar text
 );
 
 
@@ -483,7 +480,8 @@ CREATE TABLE classroom_activities (
     visible boolean DEFAULT true NOT NULL,
     locked boolean DEFAULT false,
     pinned boolean DEFAULT false,
-    assign_on_join boolean
+    assign_on_join boolean,
+    completed boolean DEFAULT false
 );
 
 
@@ -542,6 +540,40 @@ CREATE SEQUENCE classrooms_id_seq
 --
 
 ALTER SEQUENCE classrooms_id_seq OWNED BY classrooms.id;
+
+
+--
+-- Name: classrooms_teachers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE classrooms_teachers (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    classroom_id integer NOT NULL,
+    role character varying NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    CONSTRAINT check_role_is_valid CHECK ((((role)::text = ANY (ARRAY[('owner'::character varying)::text, ('coteacher'::character varying)::text])) AND (role IS NOT NULL)))
+);
+
+
+--
+-- Name: classrooms_teachers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE classrooms_teachers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: classrooms_teachers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE classrooms_teachers_id_seq OWNED BY classrooms_teachers.id;
 
 
 --
@@ -644,6 +676,38 @@ CREATE SEQUENCE concepts_id_seq
 --
 
 ALTER SEQUENCE concepts_id_seq OWNED BY concepts.id;
+
+
+--
+-- Name: coteacher_classroom_invitations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE coteacher_classroom_invitations (
+    id integer NOT NULL,
+    invitation_id integer NOT NULL,
+    classroom_id integer NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: coteacher_classroom_invitations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE coteacher_classroom_invitations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: coteacher_classroom_invitations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE coteacher_classroom_invitations_id_seq OWNED BY coteacher_classroom_invitations.id;
 
 
 --
@@ -766,7 +830,8 @@ CREATE TABLE firebase_apps (
     name character varying(255),
     secret character varying(255),
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    pkey text
 );
 
 
@@ -787,6 +852,40 @@ CREATE SEQUENCE firebase_apps_id_seq
 --
 
 ALTER SEQUENCE firebase_apps_id_seq OWNED BY firebase_apps.id;
+
+
+--
+-- Name: invitations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE invitations (
+    id integer NOT NULL,
+    invitee_email character varying NOT NULL,
+    inviter_id integer NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    invitation_type character varying,
+    archived boolean DEFAULT false
+);
+
+
+--
+-- Name: invitations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE invitations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: invitations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE invitations_id_seq OWNED BY invitations.id;
 
 
 --
@@ -1435,9 +1534,6 @@ CREATE TABLE unit_templates (
     "time" integer,
     grades text,
     author_id integer,
-    problem text,
-    summary text,
-    teacher_review text,
     flag character varying,
     order_number integer DEFAULT 999999999,
     activity_info text,
@@ -1475,7 +1571,8 @@ CREATE TABLE units (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     visible boolean DEFAULT true NOT NULL,
-    user_id integer
+    user_id integer,
+    unit_template_id integer
 );
 
 
@@ -1584,7 +1681,8 @@ CREATE TABLE users (
     send_newsletter boolean DEFAULT false,
     flag character varying,
     google_id character varying,
-    last_sign_in timestamp without time zone
+    last_sign_in timestamp without time zone,
+    last_active timestamp without time zone
 );
 
 
@@ -1699,6 +1797,13 @@ ALTER TABLE ONLY classrooms ALTER COLUMN id SET DEFAULT nextval('classrooms_id_s
 
 
 --
+-- Name: classrooms_teachers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY classrooms_teachers ALTER COLUMN id SET DEFAULT nextval('classrooms_teachers_id_seq'::regclass);
+
+
+--
 -- Name: comments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1717,6 +1822,13 @@ ALTER TABLE ONLY concept_results ALTER COLUMN id SET DEFAULT nextval('concept_re
 --
 
 ALTER TABLE ONLY concepts ALTER COLUMN id SET DEFAULT nextval('concepts_id_seq'::regclass);
+
+
+--
+-- Name: coteacher_classroom_invitations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY coteacher_classroom_invitations ALTER COLUMN id SET DEFAULT nextval('coteacher_classroom_invitations_id_seq'::regclass);
 
 
 --
@@ -1745,6 +1857,13 @@ ALTER TABLE ONLY file_uploads ALTER COLUMN id SET DEFAULT nextval('file_uploads_
 --
 
 ALTER TABLE ONLY firebase_apps ALTER COLUMN id SET DEFAULT nextval('firebase_apps_id_seq'::regclass);
+
+
+--
+-- Name: invitations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY invitations ALTER COLUMN id SET DEFAULT nextval('invitations_id_seq'::regclass);
 
 
 --
@@ -2013,6 +2132,14 @@ ALTER TABLE ONLY classrooms
 
 
 --
+-- Name: classrooms_teachers classrooms_teachers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY classrooms_teachers
+    ADD CONSTRAINT classrooms_teachers_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: comments comments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2034,6 +2161,14 @@ ALTER TABLE ONLY concept_results
 
 ALTER TABLE ONLY concepts
     ADD CONSTRAINT concepts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: coteacher_classroom_invitations coteacher_classroom_invitations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY coteacher_classroom_invitations
+    ADD CONSTRAINT coteacher_classroom_invitations_pkey PRIMARY KEY (id);
 
 
 --
@@ -2066,6 +2201,14 @@ ALTER TABLE ONLY file_uploads
 
 ALTER TABLE ONLY firebase_apps
     ADD CONSTRAINT firebase_apps_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: invitations invitations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY invitations
+    ADD CONSTRAINT invitations_pkey PRIMARY KEY (id);
 
 
 --
@@ -2260,6 +2403,13 @@ CREATE INDEX aut ON activities_unit_templates USING btree (activity_id, unit_tem
 
 
 --
+-- Name: classroom_invitee_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX classroom_invitee_index ON coteacher_classroom_invitations USING btree (invitation_id, classroom_id);
+
+
+--
 -- Name: email_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2334,20 +2484,6 @@ CREATE INDEX index_activity_sessions_on_completed_at ON activity_sessions USING 
 --
 
 CREATE INDEX index_activity_sessions_on_pairing_id ON activity_sessions USING btree (pairing_id);
-
-
---
--- Name: index_activity_sessions_on_started_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_activity_sessions_on_started_at ON activity_sessions USING btree (started_at);
-
-
---
--- Name: index_activity_sessions_on_state; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_activity_sessions_on_state ON activity_sessions USING btree (state);
 
 
 --
@@ -2463,6 +2599,27 @@ CREATE INDEX index_classrooms_on_teacher_id ON classrooms USING btree (teacher_i
 
 
 --
+-- Name: index_classrooms_teachers_on_classroom_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_classrooms_teachers_on_classroom_id ON classrooms_teachers USING btree (classroom_id);
+
+
+--
+-- Name: index_classrooms_teachers_on_role; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_classrooms_teachers_on_role ON classrooms_teachers USING btree (role);
+
+
+--
+-- Name: index_classrooms_teachers_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_classrooms_teachers_on_user_id ON classrooms_teachers USING btree (user_id);
+
+
+--
 -- Name: index_comments_on_ancestry; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2491,6 +2648,20 @@ CREATE INDEX index_concept_results_on_question_type ON concept_results USING btr
 
 
 --
+-- Name: index_coteacher_classroom_invitations_on_classroom_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_coteacher_classroom_invitations_on_classroom_id ON coteacher_classroom_invitations USING btree (classroom_id);
+
+
+--
+-- Name: index_coteacher_classroom_invitations_on_invitation_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_coteacher_classroom_invitations_on_invitation_id ON coteacher_classroom_invitations USING btree (invitation_id);
+
+
+--
 -- Name: index_districts_users_on_district_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2509,6 +2680,20 @@ CREATE INDEX index_districts_users_on_district_id_and_user_id ON districts_users
 --
 
 CREATE INDEX index_districts_users_on_user_id ON districts_users USING btree (user_id);
+
+
+--
+-- Name: index_invitations_on_invitee_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_invitations_on_invitee_email ON invitations USING btree (invitee_email);
+
+
+--
+-- Name: index_invitations_on_inviter_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_invitations_on_inviter_id ON invitations USING btree (inviter_id);
 
 
 --
@@ -2708,6 +2893,13 @@ CREATE INDEX index_unit_templates_on_unit_template_category_id ON unit_templates
 
 
 --
+-- Name: index_units_on_unit_template_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_units_on_unit_template_id ON units USING btree (unit_template_id);
+
+
+--
 -- Name: index_units_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2810,6 +3002,13 @@ CREATE INDEX index_users_on_username ON users USING btree (username);
 --
 
 CREATE INDEX name_idx ON users USING gin (name gin_trgm_ops);
+
+
+--
+-- Name: unique_classroom_and_user_ids_on_classrooms_teachers; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_classroom_and_user_ids_on_classrooms_teachers ON classrooms_teachers USING btree (user_id, classroom_id);
 
 
 --
@@ -2950,6 +3149,14 @@ CREATE INDEX users_to_tsvector_idx9 ON users USING gin (to_tsvector('english'::r
 --
 
 CREATE INDEX uta ON activities_unit_templates USING btree (unit_template_id, activity_id);
+
+
+--
+-- Name: units fk_rails_0b3b28b65f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY units
+    ADD CONSTRAINT fk_rails_0b3b28b65f FOREIGN KEY (unit_template_id) REFERENCES unit_templates(id);
 
 
 --
@@ -3362,15 +3569,49 @@ INSERT INTO schema_migrations (version) VALUES ('20170927213514');
 
 INSERT INTO schema_migrations (version) VALUES ('20170928203242');
 
-INSERT INTO schema_migrations (version) VALUES ('20171005193104');
-
 INSERT INTO schema_migrations (version) VALUES ('20171005210006');
-
-INSERT INTO schema_migrations (version) VALUES ('20171005211221');
-
-INSERT INTO schema_migrations (version) VALUES ('20171005214127');
 
 INSERT INTO schema_migrations (version) VALUES ('20171006150857');
 
 INSERT INTO schema_migrations (version) VALUES ('20171006151454');
+
+INSERT INTO schema_migrations (version) VALUES ('20171006194812');
+
+INSERT INTO schema_migrations (version) VALUES ('20171009155139');
+
+INSERT INTO schema_migrations (version) VALUES ('20171009160011');
+
+INSERT INTO schema_migrations (version) VALUES ('20171009162550');
+
+INSERT INTO schema_migrations (version) VALUES ('20171011202936');
+
+INSERT INTO schema_migrations (version) VALUES ('20171019150737');
+
+INSERT INTO schema_migrations (version) VALUES ('20171106201721');
+
+INSERT INTO schema_migrations (version) VALUES ('20171106203046');
+
+INSERT INTO schema_migrations (version) VALUES ('20171128154249');
+
+INSERT INTO schema_migrations (version) VALUES ('20171128192444');
+
+INSERT INTO schema_migrations (version) VALUES ('20171128211301');
+
+INSERT INTO schema_migrations (version) VALUES ('20171204202718');
+
+INSERT INTO schema_migrations (version) VALUES ('20171204203843');
+
+INSERT INTO schema_migrations (version) VALUES ('20171204205938');
+
+INSERT INTO schema_migrations (version) VALUES ('20171204220339');
+
+INSERT INTO schema_migrations (version) VALUES ('20171205181155');
+
+INSERT INTO schema_migrations (version) VALUES ('20171214152937');
+
+INSERT INTO schema_migrations (version) VALUES ('20171218222306');
+
+INSERT INTO schema_migrations (version) VALUES ('20180102151559');
+
+INSERT INTO schema_migrations (version) VALUES ('20180110221301');
 

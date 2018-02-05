@@ -71,9 +71,19 @@ class TeachersController < ApplicationController
     render json: {classrooms: current_user.classrooms_i_teach_with_students}
   end
 
+  def classrooms_i_own_with_students
+    render json: {classrooms: current_user.classrooms_i_own_with_students}
+  end
+
   def classrooms_i_teach_with_lessons
-    lesson_activity_ids = Activity.where(activity_classification_id: 6).ids
-    classrooms = current_user.classrooms_i_teach.includes(classroom_activities: [{activity: :classification}]).where(classroom_activities: {activity_id: lesson_activity_ids})
+    classrooms =  ActiveRecord::Base.connection.execute(
+      "SELECT DISTINCT classrooms.* FROM classrooms
+       JOIN classrooms_teachers ON classrooms_teachers.classroom_id = classrooms.id
+       JOIN classroom_activities ON classroom_activities.classroom_id = classrooms.id
+       JOIN activities ON activities.id = classroom_activities.activity_id
+       WHERE activities.activity_classification_id = 6
+            AND classrooms_teachers.user_id = #{current_user.id}"
+    ).to_a
     render json: {classrooms: classrooms}
   end
 
@@ -91,7 +101,7 @@ class TeachersController < ApplicationController
       ca = ClassroomActivity.find_by(unit_id: unit_id, activity_id: [413, 447, 602])
       unit_info = { unit_id: unit_id, classroom_id: ca.classroom_id, activity_id: ca.activity_id }
     rescue
-      unit_info = nil
+      unit_info = {}
     end
     render json: {unit_info: unit_info}
   end
@@ -111,7 +121,7 @@ class TeachersController < ApplicationController
       if most_recently_completed && 1.week.ago < most_recently_completed['completed_at']
         number_of_finished_students = ActiveRecord::Base.connection.execute("SELECT COUNT(actsesh.id) FROM activity_sessions actsesh
                               JOIN classroom_activities AS ca ON actsesh.classroom_activity_id = ca.id
-                              WHERE ca.id = #{most_recently_completed['classroom_activity_id']}
+                              WHERE ca.id = #{ActiveRecord::Base.sanitize(most_recently_completed['classroom_activity_id'])}
                               AND actsesh.state = 'finished'
                               AND actsesh.visible = 'true'
                               AND ca.visible = 'true'").to_a.first['count']
@@ -127,12 +137,6 @@ class TeachersController < ApplicationController
   end
 
   private
-
-  def set_admin_account
-    # TODO: when admins actually belong to more than 1 admin_account,
-    # we will need to specifically fetch an admin_account by id
-    @admin_account = User.find(params[:admin_id]).admin_accounts.first
-  end
 
   def teacher_params
     params.require(:teacher).permit(:admin_id, :first_name, :last_name, :email)

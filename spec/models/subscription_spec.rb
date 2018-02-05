@@ -2,24 +2,24 @@ require 'rails_helper'
 
 describe Subscription, type: :model do
   describe "start premium when subscription" do
-    let!(:user) { FactoryGirl.create(:user) }
-    let!(:subscription) { FactoryGirl.create(:subscription) }
-    let!(:user_subscription) {FactoryGirl.create(:user_subscription, user: user, subscription: subscription)}
+    let!(:subscription) { create(:subscription) }
+    let!(:user) { User.find(subscription.user_id) }
+    let!(:user_subscription) {create(:user_subscription, user: user, subscription: subscription)}
 
     context "updates the expirary to the later of one year from today or July 1, 2018 if" do
       it "is a trial user" do
         subscription.update(account_type: 'Teacher Trial')
         Subscription.start_premium(user.id)
-        july_1_2017 = Date.new(2017, 7, 1)
-        expected_date = [Date.today, july_1_2017].max + 365
+        july_1_2018 = Date.new(2018, 7, 1)
+        expected_date = [subscription.expiration + 365, july_1_2018].max
         expect(subscription.reload.expiration).to eq(expected_date)
       end
 
       it "is a paid user" do
         subscription.update(account_type: 'Teacher Paid')
         Subscription.start_premium(user.id)
-        july_1_2017 = Date.new(2017, 7, 1)
-        expected_date = [Date.today, july_1_2017].max + 365
+        july_1_2018 = Date.new(2018, 7, 1)
+        expected_date = [subscription.expiration + 365, july_1_2018].max
         expect(subscription.reload.expiration).to eq(expected_date)
       end
 
@@ -27,7 +27,7 @@ describe Subscription, type: :model do
   end
 
   describe "start premium when no subscription" do
-    let(:user) { FactoryGirl.create(:user) }
+    let(:user) { create(:user) }
 
     it "creates one" do
       expect {
@@ -44,7 +44,7 @@ describe Subscription, type: :model do
   end
 
   describe "create_or_update_with_user_join" do
-    let!(:user) { FactoryGirl.create(:user) }
+    let!(:user) { create(:user) }
     let(:old_sub) {Subscription.create_or_update_with_user_join(user.id, {expiration: Date.yesterday, account_limit: 1002, account_type: 'Teacher Paid'})}
 
 
@@ -89,7 +89,7 @@ describe Subscription, type: :model do
   end
 
   describe "create_or_update_with_school_join" do
-    let!(:queens_school) { FactoryGirl.create :school, name: "Queens Charter School", zipcode: '11385'}
+    let!(:queens_school) { create :school, name: "Queens Charter School", zipcode: '11385'}
 
     it "creates a subscription based off of the passed attributes" do
       attributes = {expiration: Date.yesterday, account_limit: 1000, account_type: 'Teacher Paid'}

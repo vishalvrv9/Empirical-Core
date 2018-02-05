@@ -1,6 +1,6 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :school_subscription do
-    school_id { School.first&.id || FactoryGirl.create(:school).id }
-    subscription_id 1
+    school_id         { create(:school).id }
+    subscription_id   { create(:subscription).id }
   end
 end

@@ -4,12 +4,12 @@ class LoginPdf < Prawn::Document
   def initialize(classroom)
     super(margin: [22, 24, 22, 24])
     @classroom = classroom
-    StudentLoginPdfDownloadAnalyticsWorker.perform_async(classroom.teacher_id, classroom.id)
+    StudentLoginPdfDownloadAnalyticsWorker.perform_async(classroom.owner.id, classroom.id)
     render_login_pdf
   end
 
   def render_cover_page_header
-    render_text "<b>#{@classroom.teacher.name} - <color rgb='777777'>#{@classroom.name}</color></b>", 20
+    render_text "<b>#{@classroom.owner.name} - <color rgb='777777'>#{@classroom.name}</color></b>", 20
     move_down 14
     float do
       bounding_box([273, cursor], width: 279, height: 120) do
@@ -44,7 +44,7 @@ class LoginPdf < Prawn::Document
   end
 
   def render_cover_page_table
-    header = [["<b><font size='12'>Name</font></b>", "<b><font size='12'>Username</font></b>", "<b><font size='12'>Password</font></b>"]]
+    header = [["<b><font size='12'>Name</font></b>", "<b><font size='12'>Username</font></b>", "<b><font size='12'> Default Password</font></b>"]]
     body = []
     @classroom.students.each do |student|
       body << [student.name, username_or_email_value_for_student(student), render_password_for_student(student)]
@@ -147,7 +147,7 @@ class LoginPdf < Prawn::Document
 
   def render_password_instructions_for_student(student)
     if student.clever_id.present? || student.signed_up_with_google?
-      render_text "Password:", 10
+      render_text "Default Password:", 10
     else
       render_text "Password: (First letter is <b>Capitalized</b>)", 10
     end
@@ -158,6 +158,8 @@ class LoginPdf < Prawn::Document
       "Log in with Clever"
     elsif student.signed_up_with_google?
       "Log in with Google"
+    elsif student.email.present?
+      "Log in with email/username and custom password"
     else
       student.last_name.capitalize
     end

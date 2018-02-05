@@ -18,7 +18,7 @@ class ClassroomActivity < ActiveRecord::Base
     if: Proc.new { |ca| ca.pinned == true }
 
   before_validation :check_pinned
-  before_save :update_students_array_if_assign_on_join
+  before_save :check_for_assign_on_join_and_update_students_array_if_true
   after_create :lock_if_lesson
   after_save :teacher_checkbox, :hide_appropriate_activity_sessions, :update_lessons_cache
 
@@ -26,14 +26,19 @@ class ClassroomActivity < ActiveRecord::Base
     User.where(id: assigned_student_ids)
   end
 
-  def update_students_array_if_assign_on_join
-    if self.assign_on_join
-      self.assigned_student_ids = StudentsClassrooms.where(classroom_id: self.classroom_id).pluck(:student_id)
+  def check_for_assign_on_join_and_update_students_array_if_true
+    student_ids = StudentsClassrooms.where(classroom_id: self.classroom_id).pluck(:student_id)
+    if self.assigned_student_ids&.any? && !self.assign_on_join && self.assigned_student_ids.length >= student_ids.length
+      # then maybe it should be assign on join, so we do a more thorough check
+      if (assigned_student_ids - student_ids).empty?
+        # then it should indeed be assigned to all
+        self.assign_on_join = true
+      end
     end
-    # old_version = ClassroomActivity.find_by_id(self.id)
-    # if self.assign_on_join && (!old_version || !old_version.assign_on_join)
-    #   self.assigned_student_ids = StudentsClassrooms.where(classroom_id: self.classroom_id).pluck(:student_id)
-    # end
+    if self.assign_on_join
+      # then we ensure that it has all the student ids
+      self.assigned_student_ids = student_ids
+    end
   end
 
   def assign_follow_up_lesson(locked=true)
@@ -68,10 +73,23 @@ class ClassroomActivity < ActiveRecord::Base
     end
   end
 
+  def delete_activity_sessions_with_no_concept_results
+    incomplete_activity_session_ids = []
+    self.activity_sessions.each do |as|
+      if as.concept_result_ids.empty?
+        incomplete_activity_session_ids.push(as.id)
+      end
+    end
+    ActivitySession.where(id: incomplete_activity_session_ids).destroy_all
+  end
+
   def find_or_create_started_activity_session(student_id)
-    started_activity = ActivitySession.find_by(state: 'started', classroom_activity_id: self.id, user_id: student_id)
-    if started_activity
-      started_activity
+    activity_session = ActivitySession.find_by(classroom_activity_id: self.id, user_id: student_id)
+    if activity_session && activity_session.state == 'started'
+      activity_session
+    elsif activity_session && activity_session.state == 'unstarted'
+      activity_session.update(state: 'started')
+      activity_session
     else
       ActivitySession.create(classroom_activity_id: self.id, user_id: student_id, activity_id: self.activity_id, state: 'started', started_at: Time.now)
     end
@@ -85,8 +103,8 @@ class ClassroomActivity < ActiveRecord::Base
     due_date.try(:to_formatted_s, :quill_default)
   end
 
-  def mark_all_activity_sessions_complete
-    ActivitySession.unscoped.where(classroom_activity_id: self.id).update_all(state: 'finished', percentage: 1, completed_at: Time.current)
+  def mark_all_activity_sessions_complete(data={})
+    ActivitySession.unscoped.where(classroom_activity_id: self.id).update_all(state: 'finished', percentage: 1, completed_at: Time.current, data: data, is_final_score: true)
   end
 
   def activity_session_metadata
@@ -95,7 +113,7 @@ class ClassroomActivity < ActiveRecord::Base
   end
 
   def teacher_and_classroom_name
-    {teacher: classroom&.teacher&.name, classroom: classroom&.name}
+    {teacher: classroom&.owner&.name, classroom: classroom&.name}
   end
 
   def formatted_due_date
@@ -118,16 +136,11 @@ class ClassroomActivity < ActiveRecord::Base
     classification_id = self.activity.classification.id
     # if it is passage proofreader or sentence writing, we only want to show ones after this Date in certain reports
     # as previous to that date, concept results were not compatible with reports
-
     if [1,2].include?(classification_id)
       self.created_at > Date.parse('25-10-2016')
     else
       true
     end
-  end
-
-  def completed
-    activity_sessions.completed.includes([:user, :activity]).joins(:user).where('users.role' == 'student')
   end
 
   def scorebook
@@ -145,11 +158,11 @@ class ClassroomActivity < ActiveRecord::Base
   end
 
   def teacher_checkbox
-    if self.classroom && self.classroom.teacher
-      teacher = self.classroom.teacher
+    if self.classroom && self.classroom.owner
+      owner = self.classroom.owner
       checkbox_name = checkbox_type
-      if teacher && self.unit && self.unit.name
-        find_or_create_checkbox(checkbox_name, teacher)
+      if owner && self.unit && self.unit.name
+        find_or_create_checkbox(checkbox_name, owner)
       end
     end
   end
@@ -168,7 +181,12 @@ class ClassroomActivity < ActiveRecord::Base
     act_seshes = self.activity_sessions
     if act_seshes
       act_seshes.each do |as|
-        if !validate_assigned_student(as.user_id)
+        # We are explicitly checking to ensure that the student here actually belongs
+        # in this classroom before running the validate_assigned_student method because
+        # if this is not true, validate_assigned_student starts an infinite loop! 😨
+        if !StudentsClassrooms.find_by(classroom_id: self.classroom_id, student_id: as.user_id)
+          as.update(visible: false)
+        elsif !validate_assigned_student(as.user_id)
           as.update(visible: false)
         end
       end
@@ -204,7 +222,7 @@ class ClassroomActivity < ActiveRecord::Base
   def checkbox_type
     if self.activity_id == 413 || self.activity_id == 447 || self.activity_id == 602
       checkbox_name = 'Assign Entry Diagnostic'
-    elsif self.unit && UnitTemplate.find_by_name(self.unit.name)
+    elsif self.unit && self.unit.unit_template_id
       checkbox_name = 'Assign Featured Activity Pack'
     else
       checkbox_name = 'Build Your Own Activity Pack'
@@ -217,7 +235,7 @@ class ClassroomActivity < ActiveRecord::Base
         if !self.assigned_student_ids.kind_of?(Array)
           self.update(assigned_student_ids: [])
         end
-        self.atomic_append(:assigned_student_ids, student_id)
+        self.update(assigned_student_ids: StudentsClassrooms.where(classroom_id: self.classroom_id).pluck(:student_id))
       end
       true
     else
@@ -226,7 +244,7 @@ class ClassroomActivity < ActiveRecord::Base
   end
 
   def lessons_cache_info_formatter
-    {"classroom_activity_id" => self.id, "activity_id" => activity.id, "activity_name" => activity.name, "unit_id" => self.unit_id, "completed" => self.has_a_completed_session?}
+    {"classroom_activity_id" => self.id, "activity_id" => activity.id, "activity_name" => activity.name, "unit_id" => self.unit_id, "completed" => self.has_a_completed_session? || self.completed}
   end
 
   private
@@ -239,27 +257,30 @@ class ClassroomActivity < ActiveRecord::Base
 
   def format_initial_lessons_cache
     # grab all classroom activities from the current ones's teacher, filter the lessons, then parse them
-    self.classroom.teacher.classroom_activities.select{|ca| ca.activity.activity_classification_id == 6}.map{|ca| ca.lessons_cache_info_formatter}
+    self.classroom.owner.classroom_activities.select{|ca| ca.activity.activity_classification_id == 6}.map{|ca| ca.lessons_cache_info_formatter}
   end
 
   def update_lessons_cache
     if ActivityClassification.find_by_id(activity&.activity_classification_id)&.key == 'lessons'
-      lessons_cache = $redis.get("user_id:#{self.classroom.teacher_id}_lessons_array")
-      if lessons_cache
-        lessons_cache = JSON.parse(lessons_cache)
-        formatted_lesson = lessons_cache_info_formatter
-        lesson_index_in_cache = lessons_cache.find_index { |l| l['classroom_activity_id'] == formatted_lesson['classroom_activity_id']}
-        if self.visible == true && !lesson_index_in_cache
-          lessons_cache.push(formatted_lesson)
-        elsif self.visible == false && lesson_index_in_cache
-          lessons_cache.delete(formatted_lesson)
-        elsif self.has_a_completed_session? && lesson_index_in_cache
-          lessons_cache[lesson_index_in_cache] = formatted_lesson
+      user_ids = ClassroomsTeacher.where(classroom_id: self.classroom_id).map(&:user_id)
+      user_ids.each do |user_id|
+        lessons_cache = $redis.get("user_id:#{user_id}_lessons_array")
+        if lessons_cache
+          lessons_cache = JSON.parse(lessons_cache)
+          formatted_lesson = lessons_cache_info_formatter
+          lesson_index_in_cache = lessons_cache.find_index { |l| l['classroom_activity_id'] == formatted_lesson['classroom_activity_id']}
+          if self.visible == true && !lesson_index_in_cache
+            lessons_cache.push(formatted_lesson)
+          elsif self.visible == false && lesson_index_in_cache
+            lessons_cache.delete(formatted_lesson)
+          elsif self.completed && lesson_index_in_cache
+            lessons_cache[lesson_index_in_cache] = formatted_lesson
+          end
+        else
+          lessons_cache = format_initial_lessons_cache
         end
-      else
-        lessons_cache = format_initial_lessons_cache
+        $redis.set("user_id:#{user_id}_lessons_array", lessons_cache.to_json)
       end
-        $redis.set("user_id:#{self.classroom.teacher_id}_lessons_array", lessons_cache.to_json)
     end
   end
 

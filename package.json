@@ -48,13 +48,21 @@
     "url": "https://github.com/shakacode/react_on_rails/issues"
   },
   "dependencies": {
+    "gitbook-plugin-rss": "git+https://git@github.com/ddmck/gitbook-plugin-rss.git",
+    "istanbul-lib-instrument": "^1.9.1",
+    "react-csv": "^1.0.8",
+    "react-dropdown": "^1.3.2",
+    "react-select": "^1.1.0",
+    "react-table": "^6.7.6",
     "tabslet": "^1.7.3"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
     "eslint": "^4.6.1",
     "eslint-config-airbnb": "^15.1.0",
     "eslint-plugin-import": "^2.7.0",
     "eslint-plugin-jsx-a11y": "^5.1.1",
-    "eslint-plugin-react": "^7.3.0"
+    "eslint-plugin-react": "^7.3.0",
+    "gitbook-cli": "^2.3.2"
   }
 }

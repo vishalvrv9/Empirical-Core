@@ -1,13 +1,13 @@
 require 'rails_helper'
 
 describe ProgressReports::Concepts::StudentSerializer, type: :serializer do
-  let(:teacher) { FactoryGirl.create(:teacher) }
-  let!(:classroom) { FactoryGirl.create(:classroom, teacher: teacher) }
-  let!(:student) { FactoryGirl.create(:user, role: 'student', classrooms: [classroom])}
-  let(:activity) { FactoryGirl.create(:activity) }
-  let(:classroom_activity) { FactoryGirl.create(:classroom_activity, classroom: classroom, activity: activity) }
+  let!(:classroom) { create(:classroom) }
+  let(:teacher) { classroom.owner }
+  let!(:student) { create(:user, role: 'student', classrooms: [classroom])}
+  let(:activity) { create(:activity) }
+  let(:classroom_activity) { create(:classroom_activity, classroom: classroom, activity: activity) }
   let(:student_for_report) { ProgressReports::Concepts::User.results(teacher, {}).first }
-  let(:concept) { FactoryGirl.create(:concept) }
+  let(:concept) { create(:concept) }
   let(:serializer) { described_class.new(student_for_report) }
 
   before do
@@ -33,6 +33,7 @@ describe ProgressReports::Concepts::StudentSerializer, type: :serializer do
                            correct_result_count
                            incorrect_result_count
                            percentage
+                           id
                           )
     end
 

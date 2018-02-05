@@ -1,5 +1,6 @@
 class PagesController < ApplicationController
-  before_filter :resolve_body_class, :determine_js_file, :determine_flag
+  include HTTParty
+  before_filter :determine_js_file, :determine_flag
   layout :determine_layout
 
   def home
@@ -25,6 +26,13 @@ class PagesController < ApplicationController
   def develop
   end
 
+  def ideas
+    connect = HTTParty.get('https://trello.com/1/boards/5B4Jalbc/lists?fields=name,id')
+    lessons = HTTParty.get('https://trello.com/1/boards/cIRvYfE7/lists?fields=name,id')
+    @connect_json = add_cards(JSON.parse(connect.body))
+    @lessons_json = add_cards(JSON.parse(lessons.body))
+  end
+
   def partners
   end
 
@@ -44,14 +52,7 @@ class PagesController < ApplicationController
     @body_class = 'full-width-page white-page'
   end
 
-  def media
-  end
-
   def faq
-  end
-
-  def new
-    @body_class = 'full-width-white-page'
   end
 
   def impact
@@ -125,18 +126,10 @@ class PagesController < ApplicationController
 
   def determine_js_file
     case action_name
-    when 'partners', 'mission', 'news', 'media', 'faq', 'impact', 'team', 'tos', 'media_kit', 'media', 'faq', 'privacy', 'premium', 'map', 'teacher_resources', 'news', 'stats', 'activities'
+    when 'partners', 'mission', 'faq', 'impact', 'team', 'tos', 'media_kit', 'media', 'faq', 'privacy', 'premium', 'map', 'teacher_resources', 'news', 'stats', 'activities'
       @js_file = 'public'
     when 'grammar_tool', 'connect_tool', 'grammar_tool', 'proofreader_tool', 'lessons_tool'
       @js_file = 'tools'
-    end
-  end
-
-
-  def resolve_body_class
-    case action_name
-    when 'learning', 'story'
-      @body_class = 'auxiliary'
     end
   end
 
@@ -145,5 +138,12 @@ class PagesController < ApplicationController
     when 'grammar_tool', 'connect_tool', 'grammar_tool', 'proofreader_tool', 'lessons_tool'
       @beta_flag = current_user && current_user.flag == 'beta'
     end
+  end
+
+  private
+
+  def add_cards(list_response)
+    list_response.each{|list| list["cards"] = HTTParty.get("https://api.trello.com/1/lists/#{list["id"]}/cards/?fields=name,url")}
+    list_response
   end
 end

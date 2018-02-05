@@ -1,13 +1,12 @@
-require 'spec_helper'
 require 'rails_helper'
 
 describe Teachers::UnitsController, type: :controller do
-  let!(:teacher) { FactoryGirl.create(:teacher) }
-  let!(:student) {FactoryGirl.create(:student)}
-  let!(:classroom) { FactoryGirl.create(:classroom, teacher: teacher, students: [student]) }
-  let!(:unit) {FactoryGirl.create(:unit, user: teacher)}
-  let!(:unit2) {FactoryGirl.create(:unit, user: teacher)}
-  let!(:classroom_activity) { FactoryGirl.create(
+  let!(:student) {create(:student)}
+  let!(:classroom) { create(:classroom, students: [student]) }
+  let!(:teacher) { classroom.owner }
+  let!(:unit) {create(:unit, user: teacher)}
+  let!(:unit2) {create(:unit, user: teacher)}
+  let!(:classroom_activity) { create(
     :classroom_activity_with_activity,
     unit: unit, classroom: classroom,
     assigned_student_ids: [student.id]
@@ -32,8 +31,14 @@ describe Teachers::UnitsController, type: :controller do
   end
 
   describe '#index' do
-    let!(:activity) {FactoryGirl.create(:activity)}
-    let!(:classroom_activity) {FactoryGirl.create(:classroom_activity, due_date: Time.now, unit: unit, classroom: classroom, activity: activity)}
+    let!(:activity) {create(:activity)}
+    let!(:classroom_activity) {create(:classroom_activity, due_date: Time.now, unit: unit, classroom: classroom, activity: activity, assigned_student_ids: [student.id])}
+    let!(:activity_session) {create(:activity_session,
+      activity: activity,
+      classroom_activity: classroom_activity,
+      user: student,
+      state: 'finished'
+    )}
 
     it 'should return json in the appropriate format' do
       response = get :index
@@ -84,7 +89,7 @@ describe Teachers::UnitsController, type: :controller do
         expect(res["classrooms"].first["name"]).to eq(classroom.name)
         expect(res["classrooms"].first["students"].first['id']).to eq(student.id)
         expect(res["classrooms"].first["students"].first['name']).to eq(student.name)
-        expect(res["classrooms"].first["classroom_activity"]).to eq({"id" => classroom_activity.id, "assigned_student_ids" => classroom_activity.assigned_student_ids, "assign_on_join" => false})
+        expect(res["classrooms"].first["classroom_activity"]).to eq({"id" => classroom_activity.id, "assigned_student_ids" => classroom_activity.assigned_student_ids, "assign_on_join" => true})
     end
 
 
@@ -139,6 +144,32 @@ describe Teachers::UnitsController, type: :controller do
             activities_data: [{id: activity.id, due_date: nil}]
           }.to_json
       expect(response.status).to eq(422)
+    end
+  end
+
+  describe '#select_lesson_with_activity_id' do
+    let!(:activity) { create(:lesson_activity) }
+
+    before(:each) do
+      ClassroomActivity.destroy_all
+      session['user_id'] = classroom_activity.classroom.owner.id
+    end
+
+    it 'should redirect to a lessons index if there are no lessons' do
+      get :select_lesson_with_activity_id, activity_id: activity.id
+      expect(response).to redirect_to("/teachers/classrooms/activity_planner/lessons_for_activity/#{activity.id}")
+    end
+
+    it 'should redirect to the lesson if there is only one lesson' do
+      classroom_activity = create(:classroom_activity, activity: activity, classroom: current_user.classrooms_i_own.first)
+      get :select_lesson_with_activity_id, activity_id: activity.id
+      expect(response).to redirect_to("/teachers/classroom_activities/#{classroom_activity.id}/launch_lesson/#{activity.uid}")
+    end
+
+    it 'should redirect to a lessons index if there are multiple lessons' do
+      create_pair(:classroom_activity, activity: activity)
+      get :select_lesson_with_activity_id, activity_id: activity.id
+      expect(response).to redirect_to("/teachers/classrooms/activity_planner/lessons_for_activity/#{activity.id}")
     end
   end
 

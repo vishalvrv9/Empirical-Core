@@ -10,6 +10,8 @@ class Teachers::StudentsController < ApplicationController
       render status: 400, json: {error: valid_names[:notice]}.to_json
     else
       @student = Creators::StudentCreator.create_student(user_params, @classroom.id)
+      classroom_activities = ClassroomActivity.where(classroom_id: @classroom.id)
+      classroom_activities.each { |ca| ca.validate_assigned_student(@student.id) }
       Associators::StudentsToClassrooms.run(@student, @classroom)
       render json: @student
     end
@@ -20,12 +22,6 @@ class Teachers::StudentsController < ApplicationController
   end
 
   def index
-  end
-
-  def reset_password
-    @student.generate_password
-    @student.save
-    redirect_to edit_teachers_classroom_student_path(@classroom, @student)
   end
 
   def update
@@ -58,7 +54,7 @@ protected
   #       consider absracting using inheritance e.g. Teachers::BaseClassroomController
   def authorize!
     @classroom = Classroom.find(params[:classroom_id])
-    auth_failed unless @classroom.teacher == current_user
+    auth_failed unless @classroom.teachers.include?(current_user)
     params[:id] = params[:student_id] if params[:student_id].present?
     @student = @classroom.students.find(params[:id]) if params[:id].present?
   end
@@ -69,8 +65,9 @@ protected
 
   def edit_page_variables
     # if teacher was the last user to reset the students password, we will show that password in the class manager to the teacher
-    @was_teacher_the_last_user_to_reset_students_password =  (@student.password_digest && @student.authenticate(@student.last_name))
     @teacher_created_student = @student.username.split('@').last == @classroom.code
+    @teacher_can_edit_password = !(@student.clever_id || @student.signed_up_with_google)
+    @teacher_can_see_password =  (@student.password_digest && @student.authenticate(@student.last_name))
     @sign_up_method = {
       "Clever User": @student.clever_id,
       "Google Sign On User": @student.signed_up_with_google,

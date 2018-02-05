@@ -50,6 +50,10 @@ select {
 }
 
 .button-select-wrapper {
+  height: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  max-height: 40px;
   button {
     border-radius: 5px;
     border: 1px solid #cecece;
@@ -111,6 +115,9 @@ select {
 
 .select-white {
   background: #fff;
+  &:focus {
+    outline: #00c2a2;
+  }
 }
 
 .select-gray-wrapper {

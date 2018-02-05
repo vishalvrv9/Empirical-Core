@@ -4,16 +4,15 @@ describe ActivitySessionsController, type: :controller do
 
 
 
-  let!(:activity) { FactoryGirl.create(:activity) }
-  let!(:teacher) { FactoryGirl.create(:user) }
-  let!(:classroom) { FactoryGirl.create(:classroom, teacher: teacher)}
-  let!(:user1) { FactoryGirl.create(:user, classcode: classroom.code) }
-  let!(:ca) { FactoryGirl.create(:classroom_activity, classroom: classroom, activity: activity)}
-  let!(:activity_session) { FactoryGirl.create(:activity_session, user: user1, activity: activity, classroom_activity: ca, state: 'unstarted') }
+  let!(:activity) { create(:activity) }
+  let!(:classroom) { create(:classroom)}
+  let!(:user1) { create(:user, classcode: classroom.code) }
+  let!(:ca) { create(:classroom_activity, classroom: classroom, activity: activity)}
+  let!(:activity_session) { create(:activity_session, user: user1, activity: activity, classroom_activity: ca, state: 'unstarted') }
 
   describe '#show' do
 
-    let!(:user2) { FactoryGirl.create(:user) }
+    let!(:user2) { create(:user) }
 
     def subject
       get :play, {id: activity_session.id}
@@ -55,6 +54,12 @@ describe ActivitySessionsController, type: :controller do
 
       it 'responds with 302 redirect' do
         expect(response).to be_redirect
+      end
+
+      it 'calls the update_last_activity_date function' do
+        
+        expect(controller).to receive(:update_student_last_active)
+        get :play, {id: activity_session.id}
       end
     end
   end

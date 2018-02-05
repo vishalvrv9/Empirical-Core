@@ -42,7 +42,7 @@ describe 'CleverIntegration::SignUp::SubMain' do
 
     context 'student pre-exists in our system' do
       let!(:preexisting_student) {
-        FactoryGirl.create(:user, clever_id: 'student_id_1')
+        create(:user, clever_id: 'student_id_1')
       }
 
       it 'finds the pre-existing student (created when the teacher signed up (which must occur beforehand))' do
@@ -83,7 +83,7 @@ describe 'CleverIntegration::SignUp::SubMain' do
     context 'district pre-exists in our system' do
 
       let!(:district) {
-        FactoryGirl.create(:district, clever_id: 'district_id_1')
+        create(:district, clever_id: 'district_id_1')
       }
 
       it 'creates the teacher' do
@@ -96,9 +96,17 @@ describe 'CleverIntegration::SignUp::SubMain' do
         expect(teacher.districts.first).to eq(district)
       end
 
-      it 'creates the teachers school' do
-        subject
-        expect(school).to be_present
+      describe 'the teacher' do
+        it "does not have a school if there is not a school with a matching nces_id" do
+          subject
+          expect(teacher.school).not_to be_present
+        end
+
+        it "does have a school if there is a school with a matching nces_id " do
+           create(:school, nces_id: school_nces_id)
+           subject
+           expect(school).to be_present
+        end
       end
 
       it 'associates the school to the teacher' do
@@ -113,7 +121,7 @@ describe 'CleverIntegration::SignUp::SubMain' do
 
       it 'associates classrooms to teacher' do
         subject
-        expect(classroom.teacher).to eq(teacher)
+        expect(classroom.owner).to eq(teacher)
       end
 
       # it 'creates students for teachers classrooms' do

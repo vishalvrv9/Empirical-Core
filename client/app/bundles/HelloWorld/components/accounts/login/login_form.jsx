@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import ReactOnRails from 'react-on-rails';
 import request from 'request';
+import PasswordInfo from './password_info.jsx';
 
 class LoginFormApp extends Component {
   constructor() {
@@ -52,7 +53,11 @@ class LoginFormApp extends Component {
       if (httpResponse.statusCode === 200 && body.redirect) {
         window.location = `${process.env.DEFAULT_URL}${body.redirect}`;
       } else {
-        this.setState({ lastUpdate: new Date(), message: (body.message || 'You have entered an incorrect email/username or password.'), });
+        let message = 'You have entered an incorrect email/username or password.';
+        if(httpResponse.statusCode === 429) {
+          message = 'Too many failed attempts. Please wait one minute and try again.'
+        }
+        this.setState({ lastUpdate: new Date(), message: (body.message || message), });
       }
     });
     e.preventDefault();
@@ -94,6 +99,7 @@ class LoginFormApp extends Component {
           </div>
           <input type="submit" name="commit" value="Login" />
         </form>
+        <PasswordInfo showHintBox={!!this.state.message} />
       </div>
     );
   }

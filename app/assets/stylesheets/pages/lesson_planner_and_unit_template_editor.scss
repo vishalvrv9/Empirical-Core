@@ -1,5 +1,7 @@
 .assign-dates {
   margin-bottom: 200px;
+  padding-top: 30px;
+  border-top: solid 1px #c0c0c0;
 }
 .fake-border {
   width: 99.4%;
@@ -12,21 +14,68 @@
 }
 #activity-planner,
 #unit-template-editor {
-  &.menu-aligned-left {
-    padding: 0;
-    margin: auto;
-    max-width: 965px;
-    .container:first-of-type {
-      padding: 0;
+  .header-and-link {
+    padding-bottom: 30px;
+    .explore-activities-header {
+      font-weight: 700;
+      font-size: 24px;
+    }
+    a {
+      color: #027360;
+      text-decoration: none;
+    }
+
+  }
+  .name-and-assign-activity-pack {
+    margin-top: 35px;
+    h1 {
+      font-size: 24px;
+      font-weight: bold;
     }
     .section-header {
-      margin-bottom: 30px;
+      font-size: 18px;
     }
   }
+  .automatic-assign-note, .unselecting-students-note {
+    margin-top: 15px;
+    padding: 15;
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    .bold {
+      font-weight: bold;
+    }
+    .italic {
+      font-style: italic;
+    }
+    i {
+      padding-top: 2px;
+      font-size: 20;
+      margin-right: 10px;
+    }
+  }
+
+  .automatic-assign-note {
+    background-color: #fcf1e1;
+    border: solid 1px rgba(245, 186, 91, 0.41);
+    i {
+      color: #ea9a1a;
+    }
+  }
+
+  .unselecting-students-note {
+    background-color: #ffefef;
+    border: solid 1px rgba(255, 115, 112, 0.72);
+    i {
+      color: #ff4542;
+    }
+  }
+
   section {
     border-bottom: none;
     &.name-the-unit {
-      padding-bottom: 10px;
+      border-bottom: solid 1px #c0c0c0;
+      padding-bottom: 30px;
     }
   }
   .error-message-and-button {
@@ -103,15 +152,28 @@
 .activity-page-dropdown-wrapper {
   margin-top: 15px;
   cursor: pointer;
-  padding-left: 0px;
-  padding-right: 15px;
-  .dropdown-menu {
-    list-style-type: none;
+  padding: auto 0;
+  .DateRangePickerInput__calendar-icon {
     padding: 0;
-    margin: 0;
-    min-width: 94%;
+    margin-left: 14px;
+  }
+  &.scorebook-filters {
+    display: flex;
+    padding-left: 15px;
+  }
+  .scorebook-dropdown-icon.fa {
+    float: left;
+    margin-right: 10px;
+    color: #000000;
+    font-size: 14px;
+    margin-top: 2px;
+  }
+  .dropdown-menu {
     border-radius: 5px;
     font-size: 14px;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
     a {
       padding: 5px 14px;
       display: block;
@@ -133,6 +195,12 @@
         background: #f0f0f0;
       }
     }
+  }
+  .button-text {
+    width: 184px;
+    overflow: hidden;
+    display: inline-block;
+    text-overflow: ellipsis;
   }
 }
 .activity_link {

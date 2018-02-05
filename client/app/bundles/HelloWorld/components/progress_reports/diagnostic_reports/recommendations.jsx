@@ -16,6 +16,7 @@ export default React.createClass({
       loading: true,
       recommendations: [],
       previouslyAssignedRecommendations: [],
+      previouslyAssignedLessonsRecommendations: [],
       lessonsRecommendations: [],
       selections: [],
       students: [],
@@ -26,7 +27,7 @@ export default React.createClass({
 
   componentDidMount() {
     this.getRecommendationData(this.props.params.classroomId, this.props.params.activityId);
-    this.getPreviouslyAssignedRecommendationData(this.props.params.classroomId, this.props.params.activityId);
+    this.getPreviouslyAssignedRecommendationData(this.props.params.classroomId, this.props.params.activityId, false);
   },
 
   componentWillReceiveProps(nextProps) {
@@ -36,7 +37,11 @@ export default React.createClass({
       assigned: false,
     });
     this.getRecommendationData(nextProps.params.classroomId, nextProps.params.activityId);
-    this.getPreviouslyAssignedRecommendationData(nextProps.params.classroomId, nextProps.params.activityId);
+    this.getPreviouslyAssignedRecommendationData(nextProps.params.classroomId, nextProps.params.activityId, false);
+  },
+
+  setAssignedToFalseAfterFiveSeconds() {
+    setTimeout(() => this.setState({assigned: false}), 5000)
   },
 
   getRecommendationData(classroomId, activityId) {
@@ -46,23 +51,24 @@ export default React.createClass({
         recommendations: JSON.parse(JSON.stringify(data.recommendations)),
         students: data.students,
         loading: false,
-      }, that.getPreviouslyAssignedRecommendationData(classroomId, activityId));
+      }, that.getPreviouslyAssignedRecommendationData(classroomId, activityId, false));
     });
     $.get(`/teachers/progress_reports/lesson_recommendations_for_classroom/u/${that.props.params.unitId}/c/${classroomId}/a/${activityId}`, (data) => {
       that.setState({ lessonsRecommendations: data.lessonsRecommendations, });
     });
   },
 
-  getPreviouslyAssignedRecommendationData(classroomId, activityId) {
+  getPreviouslyAssignedRecommendationData(classroomId, activityId, assigned) {
     const that = this;
     $.get(`/teachers/progress_reports/previously_assigned_recommendations/${classroomId}/activity/${activityId}`, ((data) => {
       that.setState({
         previouslyAssignedRecommendations: data.previouslyAssignedRecommendations,
-      }, that.setSelections(data.previouslyAssignedRecommendations));
+        previouslyAssignedLessonsRecommendations: data.previouslyAssignedLessonsRecommendations,
+      }, that.setSelections(data.previouslyAssignedRecommendations, assigned, data.previouslyAssignedLessonsRecommendations));
     }));
   },
 
-  setSelections(previouslyAssignedRecommendations) {
+  setSelections(previouslyAssignedRecommendations, assigned, previouslyAssignedLessonsRecommendations) {
     const selections = this.state.recommendations.map((recommendation, i) => {
       const prevAssigned = previouslyAssignedRecommendations[i];
       const allAssignedStudents = _.uniq(recommendation.students.concat(prevAssigned.students));
@@ -72,7 +78,18 @@ export default React.createClass({
         students: allAssignedStudents,
       };
     });
-    this.setState({ selections, });
+    const lessonsRecommendations = this.state.lessonsRecommendations.map(recommendation => {
+      if(previouslyAssignedLessonsRecommendations.includes(recommendation.activity_pack_id)) {
+        return Object.assign({}, recommendation, {status: 'assigned'})
+      } else {
+        return recommendation;
+      }
+    });
+    if (assigned) {
+      this.setState({ selections, assigned: assigned, assigning: false}, this.setAssignedToFalseAfterFiveSeconds);
+    } else {
+      this.setState({ selections, lessonsRecommendations })
+    }
   },
 
   studentWasAssigned(student, previouslyAssignedRecommendation) {
@@ -103,30 +120,33 @@ export default React.createClass({
 
   assignSelectedPacks() {
     this.setState({ assigning: true, }, () => {
-      const classroomId = this.props.params.classroomId;
-      let selections = this.state.selections.map(activityPack => ({
-        id: activityPack.activity_pack_id,
-        classrooms: [
-          {
-            id: classroomId,
-            student_ids: activityPack.students,
-          }
-        ],
-      }));
-      selections = { selections, };
       $.ajax({
 		  	type: 'POST',
 		  	url: '/teachers/progress_reports/assign_selected_packs/',
 		  	dataType: 'json',
 		  	contentType: 'application/json',
-		  	data: JSON.stringify(selections),
+		  	data: JSON.stringify(this.formatSelectionsForAssignment()),
       })
 			.done(() => { this.initializePusher(); })
 			.fail(() => {
-  alert('We had trouble processing your request. Please check your network connection and try again.');
-  this.setState({ assigning: false, });
-});
+        alert('We had trouble processing your request. Please check your network connection and try again.');
+        this.setState({ assigning: false, });
+      });
     });
+  },
+
+  formatSelectionsForAssignment() {
+    const classroomId = this.props.params.classroomId;
+    const selectionsArr = this.state.selections.map(activityPack => ({
+      id: activityPack.activity_pack_id,
+      classrooms: [
+        {
+          id: classroomId,
+          student_ids: activityPack.students,
+        }
+      ],
+    }));
+    return {selections: selectionsArr}
   },
 
   assignToWholeClass(unitTemplateId) {
@@ -136,7 +156,7 @@ export default React.createClass({
       url: '/teachers/progress_reports/assign_selected_packs/',
       dataType: 'json',
       contentType: 'application/json',
-      data: JSON.stringify({ authenticity_token: authToken(), whole_class: true, unit_template_id: unitTemplateId, classroom_id: this.props.params.classroomId, }),
+      data: JSON.stringify({ authenticity_token: authToken(), whole_class: true, unit_template_id: unitTemplateId, classroom_id: this.props.params.classroomId}),
     })
     .done(() => {
       this.initializePusher(unitTemplateId);
@@ -163,8 +183,7 @@ export default React.createClass({
       });
     } else {
       channel.bind('personalized-recommendations-assigned', (data) => {
-        that.getPreviouslyAssignedRecommendationData(params.classroomId, params.activityId);
-        that.setState({ assigning: false, assigned: true, });
+        that.getPreviouslyAssignedRecommendationData(params.classroomId, params.activityId, true);
       });
     }
   },

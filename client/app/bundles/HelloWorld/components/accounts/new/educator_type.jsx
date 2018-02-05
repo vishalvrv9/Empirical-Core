@@ -3,6 +3,7 @@ import React from 'react'
 import $ from 'jquery'
 import UsK12View from '../school/us_k12_view'
 import NotUsK12View from '../school/not_us_k12_view'
+import ScrollToTop from '../../shared/scroll_to_top'
 export default React.createClass({
 
   getInitialState: function() {
@@ -14,7 +15,6 @@ export default React.createClass({
   },
 
   finish: function () {
-    console.log('i got clicked!!!!!')
     if (this.props.teacherFromGoogleSignUp) {
       window.location = '/teachers/classrooms/google_sync'
     } else if (this.props.modal) {
@@ -27,15 +27,18 @@ export default React.createClass({
 
 
   selectSchool: function (school_id_or_type) {
-    this.props.analytics.track('select school');
-    $.ajax({
-      type: 'PUT',
-      url: '/select_school',
-      data: {
-        school_id_or_type: school_id_or_type
-      },
-      success: this.finish
-    });
+    if (this.props.analytics) {
+      this.props.analytics.track('select school');
+      $.ajax({
+        type: 'PUT',
+        dataType: "json",
+        url: '/select_school',
+        data: {
+          school_id_or_type: school_id_or_type
+        },
+        success: this.finish
+      });
+    }
   },
 
 
@@ -45,6 +48,7 @@ export default React.createClass({
     if (this.state.stage === 1) {
       return (
         <div className='educator-type'>
+          <ScrollToTop />
           <h3>Are you a faculty member at a U.S K-12 School?*</h3>
            <div className='option-wrapper'>
              <button className='button-green' onClick={() => this.goToStage(2)}>Yes</button>

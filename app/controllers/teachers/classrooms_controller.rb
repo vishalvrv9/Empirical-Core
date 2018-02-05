@@ -1,10 +1,11 @@
 class Teachers::ClassroomsController < ApplicationController
   respond_to :json, :html, :pdf
   before_filter :teacher!
-  before_filter :authorize!
+  before_filter :authorize_owner!, except: [:scores, :units, :scorebook]
+  before_filter :authorize_teacher!, only: [:scores, :units, :scorebook]
 
   def index
-    if current_user.classrooms_i_teach.empty? && current_user.archived_classrooms.empty?
+    if current_user.classrooms_i_teach.empty? && current_user.archived_classrooms.empty? && !current_user.has_outstanding_coteacher_invitation?
       redirect_to new_teachers_classroom_path
     else
       @classrooms = current_user.classrooms_i_teach
@@ -20,7 +21,7 @@ class Teachers::ClassroomsController < ApplicationController
 
   def classrooms_i_teach
     @classrooms = current_user.classrooms_i_teach
-    render json: @classrooms.order(:updated_at)
+    render json: @classrooms.sort_by { |c| c[:update_at] }
   end
 
   def regenerate_code
@@ -30,7 +31,7 @@ class Teachers::ClassroomsController < ApplicationController
   end
 
   def create
-    @classroom = Classroom.create(classroom_params.merge(teacher: current_user))
+    @classroom = Classroom.create_with_join(classroom_params, current_user.id)
     if @classroom.valid?
       render json: {classroom: @classroom, toInviteStudents: current_user.students.empty?}
     else
@@ -68,6 +69,7 @@ class Teachers::ClassroomsController < ApplicationController
   end
 
   def units
+    @classroom = Classroom.find(params[:id])
     render json: {units: @classroom.units.select('units.id AS value, units.name').distinct.order('units.name').as_json(except: :id)}
   end
 
@@ -88,15 +90,38 @@ class Teachers::ClassroomsController < ApplicationController
     end
   end
 
+  def transfer_ownership
+    requested_new_owner_id = params[:requested_new_owner_id]
+    owner_role = ClassroomsTeacher::ROLE_TYPES[:owner]
+    coteacher_role = ClassroomsTeacher::ROLE_TYPES[:coteacher]
+
+    begin
+      ActiveRecord::Base.transaction do
+        ClassroomsTeacher.find_by(user_id: current_user.id, classroom_id: @classroom.id, role: owner_role).update(role: coteacher_role)
+        ClassroomsTeacher.find_by(user_id: requested_new_owner_id, classroom_id: @classroom.id, role: coteacher_role).update(role: owner_role)
+      end
+      CoteacherAnalytics.new.track_transfer_classroom(current_user, requested_new_owner_id)
+    rescue
+      return render json: { error: 'Please ensure this teacher is a co-teacher before transferring ownership.' }, status: 401
+    end
+
+    return render json: {}
+  end
+
 private
 
   def classroom_params
     params[:classroom].permit(:name, :code, :grade)
   end
 
-  def authorize!
+  def authorize_owner!
     return unless params[:id].present?
     @classroom = Classroom.find(params[:id])
-    auth_failed unless @classroom.teacher == current_user
+    classroom_owner!(@classroom.id)
+  end
+
+  def authorize_teacher!
+    return unless params[:id].present?
+    classroom_teacher!(params[:id])
   end
 end

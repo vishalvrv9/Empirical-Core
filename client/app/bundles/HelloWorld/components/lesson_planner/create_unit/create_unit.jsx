@@ -142,7 +142,7 @@ export default React.createClass({
   fetchClassrooms() {
 		 const that = this;
     $.ajax({
-      url: '/teachers/classrooms/retrieve_classrooms_for_assigning_activities',
+      url: '/teachers/classrooms/retrieve_classrooms_i_teach_for_custom_assigning_activities',
       context: this,
       success(data) {
         that.setState({
@@ -280,7 +280,9 @@ export default React.createClass({
     model.dueDates[activity.id] = dueDate;
     this.setState({ model, });
   },
+
   toggleActivitySelection(activity) {
+    activity.selected = !activity.selected
     const indexOfActivity = this.state.selectedActivities.findIndex(act => act.id === activity.id);
     const newActivityArray = this.state.selectedActivities.slice();
     if (indexOfActivity === -1) {
@@ -314,7 +316,7 @@ export default React.createClass({
       return (<UnitTemplatesAssigned data={this.state.assignSuccess} />);
     }
 
-    if(_.map(this.state.selectedActivities, activity => { return activity.classification.id }).includes(6)) {
+    if(_.map(this.state.selectedActivities, activity => { return activity.activity_classification.id }).includes(6)) {
       // There is a lesson here, so we should send the teacher to the Lessons page.
       window.location.href = `/teachers/classrooms/activity_planner/lessons#${this.state.newUnitId}`;
     } else {
@@ -338,7 +340,7 @@ export default React.createClass({
     }
     return (
       <span>
-        <div className="container" id="activity-planner" className="menu-aligned-left">
+        <div className="container" id="activity-planner">
           {stageSpecificComponents}
         </div>
       </span>

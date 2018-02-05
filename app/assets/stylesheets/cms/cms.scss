@@ -38,6 +38,10 @@
     height: 265px;
   }
 
+  input[readonly='readonly'] {
+    background: #ccc;
+  }
+
   .cms-checkbox-row {
     margin: -5px 0 5px;
 
@@ -97,4 +101,10 @@
       border-color: #ccc;
     }
   }
+}
+
+.cms-author-avatar {
+  border-radius: 50%;
+  height: 80px;
+  width: 80px;
 }

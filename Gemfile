@@ -3,14 +3,14 @@ source 'https://rubygems.org'
 ruby '2.3.1'
 
 # CORE DEPS
-gem 'rails'
+gem 'rails', '=4.2.7.1'
 gem 'puma', '~> 3.10.0'
 
 # EARLY TO APPLY TO OTHER GEMS
 gem 'dotenv-rails'
 
 # DB/MODEL
-gem 'pg'
+gem 'pg', '0.18.4'
 gem 'ancestry'
 gem 'ransack'
 gem 'ranked-model'
@@ -21,12 +21,13 @@ gem 'atomic_arrays'
 
 # USER AUTH, ETC
 gem 'bcrypt'
-gem 'doorkeeper', '1.4.1' # must use 1.4.1 or > 2.0.0 - http://seclists.org/oss-sec/2014/q4/1076
+gem 'doorkeeper', '1.4.1'
 gem 'omniauth'
 gem 'omniauth-google-oauth2'
 gem 'omniauth-clever'
 gem 'cancancan'
 gem 'firebase_token_generator'
+gem 'rack-attack'
 
 # EMAIL
 gem 'premailer-rails'
@@ -41,12 +42,8 @@ gem 'validates_email_format_of'
 gem 'responders'
 
 # UPLOADS
-gem 'carrierwave'
-gem 'fog', require: 'fog/aws/storage'
-
-# IMAGE UPLOADS
-gem 'paperclip'
-gem "jquery-fileupload-rails"
+gem 'carrierwave', '=0.11.2'
+gem 'fog-aws'
 
 # TIME
 gem 'time_difference'
@@ -68,7 +65,6 @@ gem 'scout_apm'
 gem 'rubyzip'
 gem 'httparty'
 
-
 # WEBSOCKETS
 gem 'pusher'
 
@@ -79,8 +75,8 @@ gem 'addressable'
 
 # QUEUE/CACHE
 gem 'sidekiq'
-gem 'sidekiq-retries'
-gem 'redis'
+gem 'sidekiq-retries', require: false
+gem 'redis', "3.3.5"
 gem 'redis-namespace'
 gem 'redis-rails'
 gem 'redis-rack-cache'
@@ -112,7 +108,7 @@ gem 'haml-rails'
 gem 'es5-shim-rails'
 # gem 'react-rails', '~> 1.6', '>= 1.6.2'
 # gem 'react-rails-hot-loader'
-gem "react_on_rails", "~> 6"
+gem "react_on_rails", "=6.1.1"
 
 # ASSET/UI
 gem 'therubyracer', require: false
@@ -122,7 +118,7 @@ gem 'kaminari'
 
 # MIDDLEWARE
 gem 'rack-cache', '~> 1.6.1', require: 'rack/cache'
-gem 'rack-cors',  require: 'rack/cors'
+gem 'rack-cors',  '0.4.0', require: 'rack/cors'
 gem 'rack-host-redirect'
 
 # DEPLOYMENT
@@ -131,7 +127,7 @@ gem 'asset_sync'
 gem 'rack-heartbeat'
 
 # INTEGRATIONS
-gem 'clever-ruby'
+gem 'clever-ruby', '~> 0.13.2'
 
 group :production, :staging do
   gem 'rails_12factor'
@@ -163,9 +159,8 @@ group :test, :development do
   gem "rspec-rails"
   gem 'fuubar', '~> 2.0.0.rc1'
   gem "timecop"
-  gem "factory_girl"
-  gem "factory_girl_rails"
-  gem "forgery"
+  gem "factory_bot", require: false
+  gem "factory_bot_rails", require: false
   gem "database_cleaner"
   gem 'byebug', '8.2.1' # getting errors on mac yosemite when trying to install 8.2.2
   gem 'guard'
@@ -176,6 +171,7 @@ group :test, :development do
   gem 'rspec-retry'
   gem 'rspec-redis_helper'
   gem 'brakeman'
+  gem 'faker'
 end
 
 group :test do
@@ -184,8 +180,15 @@ group :test do
   gem "vcr"
   gem "webmock"
   gem "codeclimate-test-reporter", require: nil
+  gem 'simplecov'
+  gem 'simplecov-json', require: false
+  gem 'codecov'
+  # gem 'test_after_commit'
 end
 
 # Memory profiling
 gem 'puma_worker_killer'
 gem 'sqreen'
+
+# temp for migrations
+gem 'paperclip'

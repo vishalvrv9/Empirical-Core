@@ -6,36 +6,21 @@ class User < ActiveRecord::Base
 
   before_save :capitalize_name
   before_save :generate_student_username_if_absent
+  after_save  :update_invitee_email_address, if: Proc.new { self.email_changed? }
 
 
   has_secure_password validations: false
 
-  has_many :admin_accounts_teachers,
-            class_name: "AdminAccountsTeachers",
-            foreign_key: :teacher_id,
-            dependent: :destroy
-
-  has_many :admin_accounts_admins,
-            class_name: "AdminAccountsAdmins",
-            foreign_key: :admin_id,
-            dependent: :destroy
-
-  has_many :admin_accounts_im_in, through: :admin_accounts_teachers, source: :admin_account, inverse_of: :teachers
-
-  has_many :admin_accounts, through: :admin_accounts_admins, source: :admin_account, inverse_of: :admins
-
-  has_many :teachers, through: :admin_accounts, source: :teachers, inverse_of: :my_admins
-
-  has_many :my_admins, through: :admin_accounts_im_in, source: :admins, inverse_of: :teachers
-
   has_many :checkboxes
+  has_many :invitations
   has_many :objectives, through: :checkboxes
   has_one :schools_users
   has_one :school, through: :schools_users
 
   has_many :schools_admins, class_name: 'SchoolsAdmins'
   has_many :admin_rights, through: :schools_admins, source: :school, foreign_key: :user_id
-
+  has_many :classrooms_teachers
+  has_many :classrooms_i_teach, through: :classrooms_teachers, source: :classroom
 
   has_and_belongs_to_many :districts
   has_one :ip_location
@@ -59,6 +44,7 @@ class User < ActiveRecord::Base
                                     on: :create
 
   validate  :validate_username_and_email,  on: :update
+  validate :username_cannot_be_an_email
 
   # gem validates_email_format_of
   validates_email_format_of :email, if: :email_required_or_present?
@@ -74,6 +60,7 @@ class User < ActiveRecord::Base
 
   ROLES      = %w(student teacher temporary user admin staff)
   SAFE_ROLES = %w(student teacher temporary)
+  VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i
 
   default_scope -> { where('users.role != ?', 'temporary') }
 
@@ -109,6 +96,17 @@ class User < ActiveRecord::Base
 
   def validate_username?
     validate_username.present? ? validate_username : false
+  end
+
+  def username_cannot_be_an_email
+    if username =~ VALID_EMAIL_REGEX
+      if self.id
+        db_self = User.find(self.id)
+        errors.add(:username, "cannot be in email format") unless db_self.username == username
+      else
+        errors.add(:username, "cannot be in email format")
+      end
+    end
   end
 
   def safe_role_assignment role
@@ -278,12 +276,33 @@ class User < ActiveRecord::Base
     UserMailer.account_created_email(self, temp_password, admin_name).deliver_now! if email.present?
   end
 
+  def send_invitation_to_non_existing_user(invitation_email_hash)
+    # must be called from inviter account
+    UserMailer.invitation_to_non_existing_user(invitation_email_hash).deliver_now! if email.present?
+  end
+
+  def send_invitation_to_existing_user(invitation_email_hash)
+    UserMailer.invitation_to_existing_user(invitation_email_hash).deliver_now! if email.present?
+  end
+
   def send_join_school_email(school)
     UserMailer.join_school_email(self, school).deliver_now! if email.present?
   end
 
   def send_lesson_plan_email(lessons, unit)
     UserMailer.lesson_plan_email(self, lessons, unit).deliver_now! if email.present?
+  end
+
+  def send_premium_user_subscription_email
+    UserMailer.premium_user_subscription_email(self).deliver_now! if email.present?
+  end
+
+  def send_premium_school_subscription_email(school, admin)
+    UserMailer.premium_school_subscription_email(self, school, admin).deliver_now! if email.present?
+  end
+
+  def send_new_admin_email(school)
+    UserMailer.new_admin_email(self, school).deliver_now! if email.present?
   end
 
   def subscribe_to_newsletter
@@ -364,6 +383,10 @@ class User < ActiveRecord::Base
     $redis.del("user_id:#{self.id}_difficult_concepts")
   end
 
+  def coteacher_invitations
+    Invitation.where(archived: false, invitation_type: 'coteacher', invitee_email: self.email)
+  end
+
 private
   def validate_username_and_email
     # change_field will return the field (username or email) that is changing
@@ -433,5 +456,9 @@ private
 
   def generate_username(classroom_id=nil)
     self.username = UsernameGenerator.run(self.first_name, self.last_name, get_class_code(classroom_id))
+  end
+
+  def update_invitee_email_address
+    Invitation.where(invitee_email: self.email_was).update_all(invitee_email: self.email)
   end
 end

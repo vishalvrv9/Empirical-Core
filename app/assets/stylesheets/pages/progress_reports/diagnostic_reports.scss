@@ -4,8 +4,8 @@
   max-width: 950px;
   padding-top: 44px;
   h1 {
-    font-size: 30px;
-    margin-bottom: 15px;
+    font-size: 24px;
+    font-weight: 700;
   }
   .nav-elements {
     margin-top: 28px;
@@ -17,7 +17,7 @@
     padding-bottom: 91px;
 }
 
-/* should be moved into select-classroom-dropdown file*/
+/* should be moved into select-item-dropdown file*/
 $darkgray3: #7e7e7e;
 $quillgreen: #00c2a2;
 $lightgray: #cecece;
@@ -178,16 +178,41 @@ $lightgray: #cecece;
   }
 }
 
+#individual-classroom-view {
+  table {
+    margin: 0;
+    width: 100%;
+
+    &:last-of-type tr {
+      border-top: 0;
+    }
+  }
+
+  .unstarted-row, .in-progress-row {
+    td:first-of-type {
+      text-decoration: none;
+    }
+    td:last-of-type {
+      text-align: left;
+    }
+  }
+}
 
 /* for shading by score*/
 .green-score-color {
-  background-color: #E7FEE8;
+  background-color: #e7fee8;
 }
 .red-score-color {
-  background-color: #feedf0;;
+  background-color: #feedf0;
 }
 .yellow-score-color {
   background-color: #fff6e2;
+}
+.unstarted-row {
+  background: #f7f5f5;
+}
+.in-progress-row {
+  background: #ffffff;
 }
 
 
@@ -215,23 +240,13 @@ $lightgray: #cecece;
     max-width: 660px;
   }
   th, td {
-    text-align: center;
+    text-align: left;
     &:first-of-type {
-      text-align: left;
       width: 48%;
     }
   }
   td:first-of-type {
     text-decoration: underline;
-  }
-  tbody {
-    td:not(:first-of-type) {
-      text-align: right;
-      padding-right: 3.5%;
-    }
-    td:nth-of-type(2) {
-      padding-right: 5.5%;
-    }
   }
 }
 
@@ -419,7 +434,7 @@ $lightgray: #cecece;
               align-items: center;
       border-bottom: none;
       &:not(.previously-assigned) {
-        cursor: pointer;  
+        cursor: pointer;
       }
       &.recommended {
         background-color: #eafcff;
@@ -519,4 +534,51 @@ $lightgray: #cecece;
       text-align: left;
       margin-top: 0px;
     }
+}
+
+.assigned-activities .row:hover {
+  background-color: $row-hover-green-white;
+
+  div.starting-row div#activity-analysis-activity-name a, div.starting-row div#activity-analysis-activity-name span {
+    color: $quillgreen;
+  }
+}
+
+.assigned-activities .row:first-of-type .activity-analysis-row-right {
+  *::before {
+    color: $anothergray;
+    cursor: auto;
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    position: relative;
+    top: -44px;
+  }
+
+  .number-of-students::before {
+    content: 'Completion';
+    margin-right: -65px;
+    width: 65px;
+  }
+
+  .average-score::before {
+    content: 'Avg. Score';
+    margin-right: -59px;
+    width: 59px;
+  }
+}
+
+.activity-analysis-row-right {
+  .chevron-right {
+    margin-right: 5px;
+  }
+
+  .activity-analysis-pie-chart {
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px $quillblue inset;
+    margin-right: 10px;
+    transform: rotate(-90deg);
+    vertical-align: text-bottom;
+    width: 18px;
+  }
 }

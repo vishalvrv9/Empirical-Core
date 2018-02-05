@@ -1,9 +1,7 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :activity_category_activity do
-
-    order_number 0
-    activity_category { ActivityCategory.first || FactoryGirl.create(:activity_category) }
-    activity { Activity.first || FactoryGirl.create(:activity) }
-
+    sequence(:order_number)
+    activity_category { create(:activity_category) }
+    activity          { create(:activity) }
   end
 end

@@ -8,7 +8,9 @@ class Cms::SchoolsController < ApplicationController
 
   # This allows staff members to view and search through schools.
   def index
-    @school_search_query = {}
+    @school_search_query = {
+      'search_schools_with_zero_teachers' => true
+    }
     @school_search_query_results = school_query(school_query_params)
     @number_of_pages = 0
   end
@@ -40,6 +42,14 @@ class Cms::SchoolsController < ApplicationController
       'PPIN' => @school_info.ppin
     }
     @teacher_data = teacher_search_query_for_school(params[:id])
+    @admins = SchoolsAdmins.includes(:user).where(school_id: params[:id].to_i).map do |admin|
+      {
+        name: admin.user.name,
+        email: admin.user.email,
+        school_id: admin.school_id,
+        user_id: admin.user_id
+      }
+    end
   end
 
   # This allows staff members to edit certain details about a school.
@@ -103,6 +113,23 @@ class Cms::SchoolsController < ApplicationController
       redirect_to cms_school_path(new_school.id)
     else
       render :new
+    end
+  end
+
+  def new_admin
+    @school = School.find(params[:id])
+  end
+
+  def add_admin_by_email
+    begin
+      user = User.find_by(email: params[:email_address])
+      school = School.find(params[:id])
+      SchoolsAdmins.create(user_id: user.id, school_id: school.id)
+      flash[:success] = "Yay! It worked! 🎉"
+      return redirect_to cms_school_path(params[:id])
+    rescue
+      flash[:error] = "It did't work! 😭😭😭"
+      return redirect_to :back
     end
   end
 
@@ -278,7 +305,8 @@ class Cms::SchoolsController < ApplicationController
         schools_admins.id AS admin_id
       FROM schools_users
       LEFT JOIN users ON schools_users.user_id = users.id
-      LEFT JOIN classrooms ON schools_users.user_id = classrooms.teacher_id AND classrooms.visible = true
+      LEFT JOIN classrooms_teachers ON classrooms_teachers.user_id = users.id AND classrooms_teachers.role = 'owner'
+      LEFT JOIN classrooms ON classrooms.id = classrooms_teachers.classroom_id AND classrooms.visible = true
       LEFT JOIN students_classrooms ON classrooms.id =  students_classrooms.classroom_id
       LEFT JOIN activity_sessions ON students_classrooms.student_id = activity_sessions.user_id AND completed_at IS NOT NULL
       LEFT JOIN user_subscriptions ON schools_users.user_id = user_subscriptions.user_id

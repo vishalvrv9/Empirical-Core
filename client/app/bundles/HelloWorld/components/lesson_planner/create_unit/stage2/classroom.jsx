@@ -1,7 +1,6 @@
 'use strict'
 
  import React from 'react'
- import $ from 'jquery'
  import Student from './student'
  import Button from 'react-bootstrap/lib/Button';
  import Panel from 'react-bootstrap/lib/Panel';
@@ -10,7 +9,7 @@
  export default React.createClass({
 
   componentDidMount: function(){
-    $('body').scrollTop(0);
+    window.scrollTo(0, 0);
   },
 
   getInitialState: function(){
@@ -19,7 +18,7 @@
 
 
   handleClassroomSelection: function(e) {
-    var checked = $(e.target).is(':checked');
+    var checked = e.target.checked;
     this.props.toggleClassroomSelection(this.props.classroom, checked);
   },
 
@@ -46,6 +45,39 @@
 
   angleIcon: function(){
     return this.state.open === true ? 'up' : 'down';
+  },
+
+  selectedStudentCount: function() {
+    let selectedStudentCount = 0
+    this.props.students.forEach((s) => {
+      if (s.isSelected) {
+        selectedStudentCount++
+      }
+    })
+    return selectedStudentCount
+  },
+
+  renderStudentCountText: function() {
+    const numberOfStudents = this.props.students.length
+    const selectedStudentCount = this.selectedStudentCount()
+    if (numberOfStudents === 0 && this.props.allSelected) {
+      return '(Empty class - all added students will be assigned)'
+    } else if (selectedStudentCount === 0) {
+      return '(0 students will be assigned)'
+    } else if (selectedStudentCount === numberOfStudents) {
+      return `(All ${numberOfStudents} will be assigned)`
+    } else {
+      return `(${selectedStudentCount} out of ${numberOfStudents} students will be assigned)`
+    }
+  },
+
+  // If we have fewer than 4 students in this class, we want to unset our
+  // columns style. This is because with the way multicolumn css works, we will
+  // otherwise experience some strange formatting we don't want here.
+  shouldUnsetColumns: function() {
+    if(this.props.students.length < 4) {
+      return { columns: 'unset' }
+    }
   },
 
   render: function() {
@@ -75,12 +107,15 @@
                 {this.determineCheckbox()}
                 <label className='css-label' htmlFor={'classroom_checkbox_' + this.props.classroom.id}>
                   {this.props.classroom.name}
+                  <span style={{marginLeft: '5px', fontWeight: '600'}}>
+                    {this.renderStudentCountText()}
+                  </span>
                 </label>
               </div>
             </h4>
           </div>
           <Panel collapsible expanded={this.state.open} ref='studentList'>
-            <div className='panel-body'>
+            <div className='panel-body student-panel-body' style={this.shouldUnsetColumns()}>
               {studentList}
             </div>
           </Panel>

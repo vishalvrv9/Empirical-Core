@@ -26,19 +26,6 @@ export default React.createClass({
       name: 'name'
     },
     {
-      name: 'problem',
-      size: 'medium'
-    },
-    {
-      name: 'summary',
-      size: 'medium'
-    },
-    {
-      name: 'teacher_review',
-      label: 'Teacher Review',
-      size: 'medium'
-    },
-    {
       name: 'activity_info',
       label: 'Activity Info',
       size: 'medium'
@@ -62,7 +49,7 @@ export default React.createClass({
       {name: 'grades', value: [], fromServer: true},
       {name: 'unit_template_categories', value: [], fromServer: true, cmsController: true},
       {name: 'authors', value: [], fromServer: true, cmsController: true},
-      {name: 'flag', value: ['alpha', 'beta', 'archived'], fromServer: false, cmsController: true},
+      {name: 'flag', value: ['production', 'alpha', 'beta', 'archived'], fromServer: false, cmsController: true},
       {name: 'order_number', value: _.range(1, 30), fromServer: false}
     ];
     return this.modelOptions;
@@ -74,9 +61,6 @@ export default React.createClass({
 
     var model = {
       name: null,
-      problem: null,
-      summary: null,
-      teacher_review: null,
       activity_info: null,
       time: null,
       grades: [],
@@ -184,18 +168,9 @@ export default React.createClass({
     // The label is a quick hack as it wasn't automatically turning to the correct one
     return <DropdownSelector
                 select={this.modules.indicatorGenerator.selector('flag')}
-                defaultValue={this.props.unitTemplate.flag}
+                defaultValue={this.state.model.flag}
                 options={this.state.options.flag}
                 label={'Select Flag'} />;
-  },
-
-  getOrderNumber: function () {
-    return <DropdownSelector
-      select={this.modules.indicatorGenerator.selector('order_number')}
-      defaultValue={this.props.unitTemplate.order_number}
-      options={this.state.options.order_number}
-      label={'Select Order Number'}
-    />
   },
 
   getAuthorSelect: function () {
@@ -242,7 +217,6 @@ export default React.createClass({
         {this.getTimeDropdownSelect()}
         {this.getGradeCheckBoxes()}
         {this.getStatusFlag()}
-        {this.getOrderNumber()}
         <span>
           {this.getActivitySearchAndSelect()}
           {this.getErrorMessageAndButton()}

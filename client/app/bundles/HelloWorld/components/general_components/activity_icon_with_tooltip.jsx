@@ -30,6 +30,10 @@ export default class ActivityIconWithTooltip extends React.Component {
     });
   }
 
+  goToReport() {
+      window.location = `/teachers/progress_reports/report_from_classroom_activity_and_user/ca/${this.props.data.caId}/user/${this.props.data.userId}`
+  }
+
   loadTooltipTitle(crData) {
     let data;
     data = _.merge(this.props.data, { premium_state: this.props.premium_state, });
@@ -40,7 +44,7 @@ export default class ActivityIconWithTooltip extends React.Component {
       return cr
     })
     data.scores = crData.scores;
-    this.setState({tooltipData: data});
+    setTimeout(() => {this.setState({tooltipData: data})}, 200);
   }
 
   getActClassId() {
@@ -75,9 +79,9 @@ export default class ActivityIconWithTooltip extends React.Component {
       }
     } else {
       if (this.props.data.started) {
-        return `icon-progress icon-${activityFromClassificationId(this.getActClassId())}-embossed`
+        return `icon-progress icon-${activityFromClassificationId(this.getActClassId())}-lightgray`
       } else {
-        return `icon-unstarted icon-${activityFromClassificationId(this.getActClassId())}-embossed`
+        return `icon-unstarted icon-${activityFromClassificationId(this.getActClassId())}-lightgray`
       }
     }
   }
@@ -86,13 +90,7 @@ export default class ActivityIconWithTooltip extends React.Component {
     return `activate-tooltip icon-link icon-wrapper ${this.iconClass()}`;
   }
 
-  goToReport() {
-    $.get(`/teachers/progress_reports/report_from_classroom_activity_and_user/ca/${this.props.data.caId}/user/${this.props.data.userId}`)
-      .success((data) => {
-        window.location = data.url;
-      })
-      .fail(() => alert('This report is not available.'));
-  }
+
 
   checkForStudentReport() {
     if (this.props.data.percentage) {
@@ -119,6 +117,13 @@ export default class ActivityIconWithTooltip extends React.Component {
     }
   }
 
+  missedIndicator() {
+    const {marked_complete, completed_attempts} = this.props.data
+    if (marked_complete === 't' && completed_attempts === 0) {
+      return <img className="missed-indicator" src={`${process.env.CDN_URL}/images/scorebook/missed-lessons-cross.svg`}/>
+    }
+  }
+
   render(){
     const cursorType = this.props.context === 'scorebook' ? 'pointer' : 'default';
     let toolTip = null;
@@ -133,6 +138,7 @@ export default class ActivityIconWithTooltip extends React.Component {
         onMouseLeave={this.props.context === 'scorebook' ? this.hideTooltip : null}
         className={this.tooltipClasses()}
       >
+        {this.missedIndicator()}
         {this.statusIndicator()}
         {toolTip}
       </div>

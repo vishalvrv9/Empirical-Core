@@ -5,7 +5,7 @@ describe 'CleverIntegration::Sync::SubMain' do
   include_context 'clever'
 
   let!(:district) {
-    FactoryGirl.create(:district, clever_id: 'district_id_1', token: 'token1')
+    create(:district, clever_id: 'district_id_1', token: 'token1')
   }
 
   let!(:district_response) {
@@ -48,14 +48,16 @@ describe 'CleverIntegration::Sync::SubMain' do
     expect(teacher.districts.first).to eq(district)
   end
 
-  it 'creates teachers school' do
-    subject
-    expect(school).to be_present
-  end
-
-  it 'associates school to teacher' do
+  it 'associates school to teacher if school exists' do
+    build(:school, nces_id: 'fake_nces_id')
     subject
     expect(teacher.school).to eq(school)
+  end
+
+  it 'does not associate school to teacher if school does not exists' do
+    build(:school, nces_id: 'fake_nces_id2')
+    subject
+    expect(teacher.school).to eq(nil)
   end
 
   it 'creates classrooms' do
@@ -65,7 +67,7 @@ describe 'CleverIntegration::Sync::SubMain' do
 
   it 'associates classrooms to teacher' do
     subject
-    expect(classroom.teacher).to eq(teacher)
+    expect(classroom.owner).to eq(teacher)
   end
 
   it 'creates students' do
