@@ -1,0 +1,23 @@
+version: '3.3'
+services:
+  db:
+    container_name: lms-database
+    image: postgres:10.1
+    volumes:
+      - lms-data:/var/lib/postgresql/data
+
+  webapp:
+    container_name: lms-rails
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      - RAILS_ENV:$RAILS_ENV
+    ports:
+      - "3000:3000"
+    links:
+      - db
+
+volumes:
+  lms-data:
