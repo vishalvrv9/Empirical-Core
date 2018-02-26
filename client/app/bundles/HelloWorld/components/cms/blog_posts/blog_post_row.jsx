@@ -1,7 +1,7 @@
 import React from 'React'
 
 const BlogPostRow = props => {
-  return <tr>
+  return <tr className="blog-post-row">
     <td>{props.draft}</td>
     <td>{props.title}</td>
     <td>{props.topic}</td>

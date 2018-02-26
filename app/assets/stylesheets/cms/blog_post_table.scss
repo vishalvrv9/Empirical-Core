@@ -1,6 +1,11 @@
 .blog-post-table {
   tr {
     display: flex;
+    padding: 5px;
+    &.blog-post-row {
+      border: 1px gray solid;
+      margin-top: 3px;
+    }
     th, td {
       width: 100px;
     }
