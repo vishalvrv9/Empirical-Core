@@ -39,8 +39,8 @@ class Cms::BlogPostsController < ApplicationController
   end
 
   def update_order_numbers
-    params[:blog_posts].each { |bp| BlogPosts.find(bp['id']).update(order_number: bp['order_number'])}
-    render json: {blog_posts: BlogPost.order(order_number: :asc)}
+    JSON.parse(params[:blog_posts]).each { |bp| BlogPost.find(bp['id']).update(order_number: bp['order_number'])}
+    render json: {}
   end
 
   private
