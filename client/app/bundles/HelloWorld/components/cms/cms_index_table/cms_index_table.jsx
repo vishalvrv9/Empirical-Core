@@ -28,7 +28,7 @@ export default React.createClass({
   },
 
   renderRows: function () {
-    if(this.props.isSortable) {
+    if (this.props.isSortable) {
       return <div className="sortable-table">
         <div className="header"><span>Name</span><span>Actions</span></div>
         <SortableList data={this.furnishRows()} sortCallback={this.props.updateOrder} />

@@ -2,10 +2,16 @@ class BlogPost < ActiveRecord::Base
   TOPICS = ['Case Studies', 'Teacher Stories', 'Webinars', 'Teacher Materials', 'Education Research']
   TOPIC_SLUGS = TOPICS.map { |topic| topic.downcase.gsub(' ','_') }
 
-  before_create :generate_slug
+  before_create :generate_slug, :set_order_number
 
   belongs_to :author
   has_many :blog_post_user_ratings
+
+  def set_order_number
+    if self.order_number.nil?
+      self.order_number =  BlogPost.where(topic: self.topic).count
+    end
+  end
 
   def increment_read_count
     self.read_count += 1

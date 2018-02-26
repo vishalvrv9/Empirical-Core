@@ -504,7 +504,8 @@ CREATE TABLE blog_posts (
     preview_card_content text NOT NULL,
     slug character varying,
     premium boolean DEFAULT false,
-    tsv tsvector
+    tsv tsvector,
+    order_number integer
 );
 
 
@@ -4248,4 +4249,6 @@ INSERT INTO schema_migrations (version) VALUES ('20180222160256');
 INSERT INTO schema_migrations (version) VALUES ('20180222160302');
 
 INSERT INTO schema_migrations (version) VALUES ('20180222190628');
+
+INSERT INTO schema_migrations (version) VALUES ('20180226173947');
 
