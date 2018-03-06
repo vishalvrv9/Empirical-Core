@@ -1,7 +1,7 @@
 import React from 'react';
 import request from 'request';
 import Modal from 'react-bootstrap/lib/Modal';
-import EnterOrUpdateStripeCard from '../modules/stripe/enter_or_update_card.js';
+import PayOrUpdateStripeCard from '../modules/stripe/enter_or_update_card.js';
 import getAuthToken from '../modules/get_auth_token';
 
 export default class extends React.Component {
@@ -28,7 +28,7 @@ export default class extends React.Component {
     this.setState({ extantCardSelected: false, changeCardSelected: !this.state.changeCardSelected, },
         () => {
           if (this.state.changeCardSelected) {
-            new EnterOrUpdateStripeCard(this.updateLastFour, this.state.lastFour ? 'Update' : 'Enter');
+            new PayOrUpdateStripeCard(this.updateLastFour, this.state.lastFour ? 'Update' : 'Pay');
           }
         }
     );

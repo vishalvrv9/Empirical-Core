@@ -81,16 +81,24 @@ class ChargesController < ApplicationController
   end
 
   def new_teacher_premium
+    set_stripe_customer_if_necessary
     new_sub = Subscription.give_teacher_premium_if_charge_succeeds(current_user)
     render json: {new_subscription: new_sub}
   end
 
   def new_school_premium
+    set_stripe_customer_if_necessary
     new_sub = Subscription.give_school_premium_if_charge_succeeds(current_user.school, current_user)
     render json: {new_subscription: new_sub}
   end
 
   private
+
+  def set_stripe_customer_if_necessary
+    if !current_user.stripe_customer_id
+      create_customer_and_update_user
+    end
+  end
 
   def create_customer_and_update_user
     customer_id = Stripe::Customer.create(

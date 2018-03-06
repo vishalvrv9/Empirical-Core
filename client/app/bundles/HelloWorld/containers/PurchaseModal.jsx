@@ -1,6 +1,7 @@
 import React from 'react';
 import SelectCreditCardModal from '../components/subscriptions/select_credit_card_modal';
 import SchoolPremiumModal from '../components/subscriptions/school_premium_modal';
+import PayOrUpdateStripeCard from '../components/modules/stripe/enter_or_update_card.js';
 
 export default class PurchaseModal extends React.Component {
 
@@ -26,6 +27,11 @@ export default class PurchaseModal extends React.Component {
       return <SelectCreditCardModal price={900} type={'school'} setCreditCardToFalse={this.setCreditCardToFalse} {...this.props} />;
     } else if (this.props.subscriptionType === 'School') {
       return <SchoolPremiumModal purchaseSchoolPremium={this.purchaseSchoolPremium} {...this.props} />;
+    } else if (!this.props.lastFour) {
+      if (this.props.show) {
+        new PayOrUpdateStripeCard();
+      }
+      return <span />;
     }
     return <SelectCreditCardModal price={80} type={'teacher'} {...this.props} />;
   }

@@ -1,12 +1,21 @@
 import $ from 'jquery';
 
-export default function (successCallback, enterOrUpdate) {
-  const urlString = enterOrUpdate === 'Update' ? 'update_card' : 'create_customer_with_card';
+export default function (successCallback, payOrUpdate, schoolOrTeacher) {
+  const urlString = payOrUpdate === 'Update' ? 'update_card' : `new_${schoolOrTeacher}_premium`;
+  let panelLabel,
+    description;
+  if (payOrUpdate === 'update') {
+    panelLabel = 'Update';
+    description = 'Update Your Credit Card';
+  } else {
+    description = schoolOrTeacher === 'school' ? '$450 School Premium' : '$80 Teacher Premium';
+    panelLabel = 'Purchase';
+  }
   const handler = StripeCheckout.configure({
     key: stripePubKey,
     image: 'https://d1yxac6hjodhgc.cloudfront.net/wp-content/uploads/2015/11/Quill-Icon.svg',
     locale: 'auto',
-    panelLabel: `${enterOrUpdate} Card Details`,
+    panelLabel,
     allowRememberMe: false,
     email: document.getElementById('current-user-email').getAttribute('content'),
     token(token) {
@@ -28,7 +37,7 @@ export default function (successCallback, enterOrUpdate) {
 
   handler.open({
     name: 'Quill Premium',
-    description: `${enterOrUpdate} Your Credit Card`,
+    description,
   });
 
     // Close Checkout on page navigation

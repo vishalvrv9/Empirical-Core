@@ -1,7 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import _ from 'lodash';
-import EnterOrUpdateStripeCard from '../modules/stripe/enter_or_update_card.js';
+import PayOrUpdateStripeCard from '../modules/stripe/enter_or_update_card.js';
 import ChangePlan from './change_plan';
 import TitleAndContent from './current_subscription_title_and_content';
 
@@ -53,7 +53,7 @@ export default class extends React.Component {
   }
 
   editCreditCard() {
-    new EnterOrUpdateStripeCard(this.updateLastFour, 'Update');
+    new PayOrUpdateStripeCard(this.updateLastFour, 'Update');
   }
 
   updateLastFour(newLastFour) {
