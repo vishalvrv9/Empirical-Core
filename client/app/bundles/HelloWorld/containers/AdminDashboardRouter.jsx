@@ -1,5 +1,5 @@
 import React from 'react'
-import { Router, Route, IndexRoute, browserHistory } from 'react-router'
+import { Link, Router, Route, IndexRoute, browserHistory } from 'react-router'
 import AdminDashboard from './AdminDashboard';
 import AdminDashboardContainer from './AdminDashboardContainer'
 import DistrictActivityScoresProgressReport from '../components/progress_reports/district_activity_scores_progress_report'
