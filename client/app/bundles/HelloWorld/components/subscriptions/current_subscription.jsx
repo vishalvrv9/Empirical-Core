@@ -53,7 +53,7 @@ export default class extends React.Component {
   }
 
   editCreditCard() {
-    new PayOrUpdateStripeCard(this.updateLastFour, 'Update');
+    new PayOrUpdateStripeCard(this.updateLastFour, 'update');
   }
 
   updateLastFour(newLastFour) {

@@ -1,7 +1,14 @@
 import $ from 'jquery';
 
 export default function (successCallback, payOrUpdate, schoolOrTeacher) {
-  const urlString = payOrUpdate === 'Update' ? 'update_card' : `new_${schoolOrTeacher}_premium`;
+  let urlString;
+  if (payOrUpdate === 'update') {
+    urlString = 'update_card';
+  } else if (payOrUpdate === 'pay') {
+    urlString = `new_${schoolOrTeacher}_premium`;
+  } else {
+    alert('We cannot process credit cards at this time. Please contact hello@quill.org.');
+  }
   let panelLabel,
     description;
   if (payOrUpdate === 'update') {
@@ -29,6 +36,9 @@ export default function (successCallback, payOrUpdate, schoolOrTeacher) {
               alert(`Your card was not changed. ${initialMessage}. If the issue persists, please contact ryan@quill.org for help.`);
             } else if (data.message) {
               alert(data.message);
+            }
+            if (payOrUpdate === 'pay') {
+              successCallback();
             }
             successCallback(token.card.last4);
           });
