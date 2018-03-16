@@ -3,6 +3,7 @@ const path = require('path');
 const autoprefixer = require('autoprefixer');
 const ManifestPlugin = require('webpack-manifest-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const devBuild = process.env.NODE_ENV !== 'production';
 const firebaseApiKey = process.env.FIREBASE_API_KEY;
@@ -36,16 +37,23 @@ const basePlugins = [new webpack.DefinePlugin({
       ],
     },
   }),
-  new webpack.LoaderOptionsPlugin({
-    test: /\.s?css$/,
-    options: {
-      postcss: [autoprefixer],
-    },
+  new HtmlWebpackPlugin({
+    title: 'Caching',
+    // cache: true,
   }),
   new webpack.optimize.CommonsChunkPlugin({
     name: 'vendor',
     filename: 'vendor-bundle.js',
     minChunks: Infinity,
+  }),
+  new webpack.optimize.CommonsChunkPlugin({
+    name: 'manifest',
+  }),
+  new webpack.LoaderOptionsPlugin({
+    test: /\.s?css$/,
+    options: {
+      postcss: [autoprefixer],
+    },
   }),
   new ManifestPlugin({
     publicPath: output.publicPath,
