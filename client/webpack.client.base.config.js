@@ -41,6 +41,13 @@ const basePlugins = [new webpack.DefinePlugin({
     title: 'Caching',
     // cache: true,
   }),
+  new webpack.LoaderOptionsPlugin({
+    test: /\.s?css$/,
+    options: {
+      postcss: [autoprefixer],
+    },
+  }),
+  new webpack.HashedModuleIdsPlugin(),
   new webpack.optimize.CommonsChunkPlugin({
     name: 'vendor',
     filename: 'vendor-bundle.js',
@@ -48,12 +55,6 @@ const basePlugins = [new webpack.DefinePlugin({
   }),
   new webpack.optimize.CommonsChunkPlugin({
     name: 'manifest',
-  }),
-  new webpack.LoaderOptionsPlugin({
-    test: /\.s?css$/,
-    options: {
-      postcss: [autoprefixer],
-    },
   }),
   new ManifestPlugin({
     publicPath: output.publicPath,
