@@ -8,10 +8,12 @@
 
 # ruby configs
 .bundle
+lambdas/*.zip
 
 # database
 config/database.yml
 latest.dump
+rethinkdb_data
 
 # compilation
 public/assets
@@ -21,6 +23,7 @@ log/*.log
 tmp
 coverage
 snapshot.dump
+*.crt
 
 # vagrant folder
 .vagrant/
@@ -68,3 +71,11 @@ _book/
 /public/packs
 /public/packs-test
 /node_modules
+
+nohup\.out
+
+/services/QuillGrammar/built
+
+# Ignore generated python files
+*.pyc
+services/QuillLessonsServer/dev.sh

@@ -1,0 +1,56 @@
+@media print {
+  a[href]:after {
+    content: none !important;
+  }
+  .bg-quillgreen,
+  .tab-subnavigation-wrapper,
+  .premium-banner-container,
+  #premium-banner,
+  .navigate-back,
+  footer,
+  .csv-and-how-we-grade,
+  .caret,
+  .green-arrow,
+  .csv-link,
+  .dropdown-content,
+  .home-nav-right,
+  .navbar-tooltip-trigger,
+  .navbar,
+  .footer-white,
+  #premium-banner-container,
+  .breadcrumb,
+  nav {
+    display: none;
+  }
+  .activity-image:first-child {
+    border: none !important;
+    background-image: none !important;
+    .icon-unstarted {
+      border: none;
+    }
+  }
+  table, .ReactTable{
+      page-break-inside: avoid;
+  }
+  .progress-reports-2018 {
+    padding-top: 0px;
+    padding-bottom: 0px;
+    .meta-overview, .dropdown-container {
+      display: none;
+    }
+    .rt-tr {
+      display: flex;
+    }
+    .-sort-desc, .-sort-asc {
+      div::after {
+        content: none;
+      }
+    }
+    &:not(.concept-student-concepts) {
+      .rt-th:last-of-type, .rt-td:last-of-type {
+        display: none;
+      }
+    }
+  }
+
+}

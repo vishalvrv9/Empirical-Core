@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NewAccountStage1 component should render  1`] = `
+<BrowserRouter>
+  <div
+    id="sign-up"
+  >
+    <Route
+      component={[Function]}
+      exact={true}
+      path="/account/new"
+    />
+    <Route
+      component={[Function]}
+      path="/sign-up/teacher"
+    />
+    <Route
+      component={[Function]}
+      path="/sign-up/student"
+    />
+    <Route
+      component={[Function]}
+      path="/sign-up/pick-school-type"
+    />
+    <Route
+      component={[Function]}
+      path="/sign-up/add-k12"
+    />
+    <Route
+      component={[Function]}
+      path="/sign-up/add-non-k12"
+    />
+  </div>
+</BrowserRouter>
+`;

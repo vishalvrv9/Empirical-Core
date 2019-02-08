@@ -1,0 +1,31 @@
+.container
+  article.simple-rounded-box.activity-classifications-page
+    h3= @activity_classification.name
+
+    .large-section-select
+      .btn-group
+        .btn.btn-primary.dropdown-toggle data-toggle="dropdown"
+          = @flag
+          span.caret
+
+        ul.dropdown-menu
+          - (Activity::FLAGS - [@flag]).each do |flag|
+            li= link_to flag, url_for(flag: flag)
+
+      .explanation-text
+        p Quill's activities are built and organized by Common Core standards.
+        p Select a <b>grade level</b> to see all activities tied to that grade level.
+
+    table.table
+      thead
+        th.name-column Name
+        th
+        th
+
+      - @activities.each do |activity|
+        tr
+          td= link_to activity.name, anonymous_activity_sessions_path(activity_id: activity.id)
+          td= link_to 'Edit', edit_cms_activity_classification_activity_path(@activity_classification, activity)
+          td= link_to 'Recommendations', cms_activity_classification_activity_recommendations_path(@activity_classification, activity)
+
+    = link_to 'Add a new activity', new_cms_activity_classification_activity_path

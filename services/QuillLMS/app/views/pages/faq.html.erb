@@ -1,0 +1,60 @@
+<% @active_tab = 'FAQ' %>
+<%= render partial: 'pages/shared/teacher_center_navbar', active_tab: @active_tab %>
+
+<div class="container pages-container pages-faq">
+
+  <header>
+    <h1>Frequently Asked Questions</h1>
+    <h2>Everything you need to know about Quill's pedagogy and use in the classroom</h2>
+    <p>Still have a question? <a href='https://support.quill.org'>Visit our support page</a></p>
+  </header>
+
+  <div class='container-946'>
+    <section class='faq-about-quill'>
+      <p><span class='faq-big-quill'>Quill is a nonprofit, educational technology organization dedicated to
+        improving student writing.</span> Quill provides over 300 research-based writing,
+      grammar, and proofreading activities organized by the Common Core standards.
+      Our activities were built by a small team of language educators. We took
+      each topic from the Common Core language section, and we researched how
+      that topic was being taught by consulting with teachers and searching
+      on BetterLesson, ShareMyLesson, and LearnZillion.</p>
+
+      <p>For more questions and answers, <a href='https://support.quill.org'>visit our support page</a>.</p>
+    </section>
+
+    <% @sections.each do |section| %>
+      <h2><%= section[:title] %></h2>
+      <section class='faq-accordion'>
+        <% section[:faqs].each do |faq| %>
+          <div class='question'>
+            <div class='question-meta' onClick="toggleAccordion(event)">
+              <h3><%= faq[:question] %></h3>
+              <a>Expand</a>
+            </div>
+            <div class='question-answer'>
+              <%= raw(faq[:answer]) %>
+            </div>
+          </div>
+        <% end %>
+      </section>
+    <% end %>
+
+    <a href='https://support.quill.org' class='faq-view-all'>View All Questions And Answers</a>
+
+  </div>
+</div>
+
+<script>
+  function toggleAccordion(e) {
+    e.preventDefault();
+    let display = 'block';
+    let text = 'Collapse';
+    const expandOrCollapseLink = e.currentTarget.getElementsByTagName('a')[0]
+    if(expandOrCollapseLink.innerText === 'Collapse') {
+      display = 'none';
+      text = 'Expand';
+    }
+    e.target.parentElement.nextElementSibling.style.display = display;
+    expandOrCollapseLink.innerText = text;
+  }
+</script>
